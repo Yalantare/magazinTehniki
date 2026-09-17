@@ -1,0 +1,76 @@
+<Window x:Class="TehnikiApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="МагазинТехники - Панель администратора" MinHeight="750" Height="750" MinWidth="1100" Width="1100"
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource ThemeBg}"
+        Icon="Resourses/icon.png">
+    <Grid Name="MainRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.2*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Background="{DynamicResource ThemeLoginGradient}">
+            <StackPanel VerticalAlignment="Center" Margin="60">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,60">
+                    <Image Source="Resourses/icon.png" Height="55" Stretch="UniformToFill"/>
+                    <TextBlock Text="МагазинТехники" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="24" FontWeight="Bold" Margin="15,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Text="Панель управления&#x0a;МагазинТехники" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
+                <TextBlock Text="Служебный доступ для управления каталогом товаров, заказами клиентов, пользователями и аналитикой магазина." 
+                           Foreground="{DynamicResource ThemeTextSecondary}" FontSize="18" TextWrapping="Wrap" Margin="0,25,0,50" LineHeight="26"/>
+
+                <StackPanel>
+                    <TextBlock Text="• Управление каталогом и складом" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" Margin="0,8"/>
+                    <TextBlock Text="• Обработка заказов и отчетов" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" Margin="0,8"/>
+                    <TextBlock Text="• Аналитика продаж и учет" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" Margin="0,8"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Column="1" Name="LoginGrid" Visibility="Visible">
+            <StackPanel VerticalAlignment="Center" MaxWidth="400" Margin="70">
+                <TextBlock Text="Панель администратора" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="32" FontWeight="Bold"/>
+                <TextBlock Text="Авторизация для администраторов магазина" Foreground="{DynamicResource ThemeTextMuted}" FontSize="15" Margin="0,8,0,40"/>
+
+                <TextBlock Text="Почта" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="15" Margin="10,15,0,5"/>
+                <Border Background="{DynamicResource ThemeTextBoxBg}" CornerRadius="15">
+                    <TextBox Name="EmailLogin" Margin="15 0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Height="48" VerticalContentAlignment="Center"/>
+                </Border>
+
+                <TextBlock Text="Пароль" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="15" Margin="10,15,0,5"/>
+                <Border Background="{DynamicResource ThemeTextBoxBg}" CornerRadius="15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <PasswordBox Name="PassLogin" PasswordChanged="PassLogin_PasswordChanged" Grid.Column="0" Margin="15 0 5 0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Height="48" VerticalContentAlignment="Center"/>
+                        <TextBox Name="PassLoginTxt" TextChanged="PassLoginTxt_TextChanged" Visibility="Collapsed" Grid.Column="0" Margin="15 0 5 0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Height="48" VerticalContentAlignment="Center"/>
+                        
+                        <Button x:Name="TogglePassBtn" Grid.Column="1" Click="TogglePass_Click" Background="Transparent" BorderThickness="0" Margin="0 0 15 0" Cursor="Hand" VerticalAlignment="Center">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="Transparent">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Path x:Name="EyeIconPath" Data="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" 
+                                  Fill="{DynamicResource ThemeTextMuted}" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                <Button Content="Войти" Click="Login_Click" IsDefault="True" Margin="0,40,0,0" Height="52" Background="#2563EB" Foreground="White" BorderThickness="0" FontWeight="Bold">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="15"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

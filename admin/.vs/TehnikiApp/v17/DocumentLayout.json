@@ -1,0 +1,294 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\TehnikiApp\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\catalogwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\catalogwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\productcardusercontrol.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\productcardusercontrol.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\productdetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\productdetailspage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\productcardusercontrol.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\productcardusercontrol.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\checkoutpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\checkoutpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\catalogwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\catalogwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\adminwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\adminwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\adminwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\cartitemusercontrol.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\cartitemusercontrol.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\cartpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\cartpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\profilepage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\profilepage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\productdetailspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\productdetailspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\receiptpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\receiptpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|c:\\users\\user\\source\\repos\\tehnikiapp\\tehnikiapp\\profilepage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{359F6D9F-917B-44D6-963F-C50612EBEE7C}|TehnikiApp\\TehnikiApp.csproj|solutionrelative:tehnikiapp\\profilepage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 368,
+          "SelectedChildIndex": 15,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CheckoutPage.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CheckoutPage.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\CheckoutPage.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CheckoutPage.xaml",
+              "RelativeToolTip": "TehnikiApp\\CheckoutPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-24T19:43:12.292Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "CartPage.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CartPage.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\CartPage.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CartPage.xaml",
+              "RelativeToolTip": "TehnikiApp\\CartPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-24T19:43:07Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "AdminWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\AdminWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\AdminWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\AdminWindow.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\AdminWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-24T18:35:56.071Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ProductCardUserControl.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductCardUserControl.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProductCardUserControl.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductCardUserControl.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\ProductCardUserControl.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-24T12:07:57.915Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ProductDetailsPage.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductDetailsPage.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProductDetailsPage.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductDetailsPage.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\ProductDetailsPage.xaml.cs",
+              "ViewState": "AgIAAHoAAAAAAAAAAAAWwMgAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-24T12:00:48.276Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AdminWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\AdminWindow.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\AdminWindow.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\AdminWindow.xaml",
+              "RelativeToolTip": "TehnikiApp\\AdminWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-23T17:41:21.343Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ProductCardUserControl.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductCardUserControl.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProductCardUserControl.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductCardUserControl.xaml",
+              "RelativeToolTip": "TehnikiApp\\ProductCardUserControl.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-23T17:31:32.198Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "CartItemUserControl.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CartItemUserControl.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\CartItemUserControl.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CartItemUserControl.xaml",
+              "RelativeToolTip": "TehnikiApp\\CartItemUserControl.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-23T17:31:25.568Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ProductDetailsPage.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductDetailsPage.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProductDetailsPage.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProductDetailsPage.xaml",
+              "RelativeToolTip": "TehnikiApp\\ProductDetailsPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-22T03:56:34Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ReceiptPage.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ReceiptPage.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\ReceiptPage.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ReceiptPage.xaml",
+              "RelativeToolTip": "TehnikiApp\\ReceiptPage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-20T05:09:59.988Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "ProfilePage.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProfilePage.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProfilePage.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProfilePage.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\ProfilePage.xaml.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAawDQAAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-18T07:54:54.634Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ProfilePage.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProfilePage.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\ProfilePage.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\ProfilePage.xaml",
+              "RelativeToolTip": "TehnikiApp\\ProfilePage.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-18T07:54:31.777Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CatalogWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CatalogWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\CatalogWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CatalogWindow.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\CatalogWindow.xaml.cs",
+              "ViewState": "AgIAAAEBAAAAAAAAAAAiwGEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-14T03:35:12.379Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CatalogWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CatalogWindow.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\CatalogWindow.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\CatalogWindow.xaml",
+              "RelativeToolTip": "TehnikiApp\\CatalogWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-14T03:29:46.737Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "TehnikiApp\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\MainWindow.xaml",
+              "RelativeToolTip": "TehnikiApp\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-05-12T17:22:12.75Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TehnikiApp\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\TehnikiApp\\TehnikiApp\\MainWindow.xaml.cs",
+              "RelativeToolTip": "TehnikiApp\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAB4BAAAAAAAAAAAMwDsAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T17:22:10.689Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 32,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,980 @@
+<Window x:Class="TehnikiApp.AdminWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Администратор — МагазинТехники" Height="900" Width="1450"
+        Background="{DynamicResource ThemeBg}" WindowStartupLocation="CenterScreen"
+        Icon="Resourses/icon.png">
+    
+    <Grid Name="AdminRootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        
+        <Border Grid.Row="0" Background="{DynamicResource ThemeHeaderBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="0,0,0,1">
+            <Grid Margin="30,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="Resourses/icon.png" Height="40" Stretch="Uniform"/>
+                    <TextBlock Text="МагазинТехники" Foreground="{DynamicResource ThemeTextPrimary}" FontWeight="Bold" FontSize="22" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                
+                <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="8" Padding="12,6">
+                    <StackPanel Orientation="Horizontal">
+                        
+                        <Path Data="M3,3 H9 V9 H3 Z M11,3 H17 V9 H11 Z M3,11 H9 V17 H3 Z M11,11 H17 V17 H11 Z" 
+                              Stroke="#3B82F6" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                        <TextBlock Text="Администратор" Foreground="{DynamicResource ThemeTextSecondary}" FontWeight="SemiBold" FontSize="15" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Theme Toggle Button -->
+                    <Button x:Name="ThemeToggleBtn" Click="ThemeToggle_Click" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,15,0" ToolTip="Сменить тему">
+                        <Path x:Name="ThemeIconPath" Data="M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z"
+                              Fill="{DynamicResource ThemeTextSecondary}" Width="22" Height="22" Stretch="Uniform"/>
+                    </Button>
+                   
+                    <StackPanel Orientation="Horizontal" Cursor="Hand">
+                        <TextBlock Name="AdminNameTxt" Text="James" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                        <Grid>
+                            <Ellipse Width="36" Height="36" Fill="#3B82F6"/>
+                            <TextBlock Name="AdminInitialsTxt" Text="J" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        
+                        <Button Click="LogoutBtn_Click" ToolTip="Выйти из системы" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center" Margin="15,0,0,0">
+                            <Path Data="M16,17 V21 H4 V3 H16 V7 M10,12 H22 M19,9 L22,12 L19,15" Stroke="#F87171" StrokeThickness="2" Fill="Transparent" Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="40,30,40,40">
+                
+                
+                <TextBlock Text="Администратор" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="40" FontWeight="Bold" Margin="0,0,0,25"/>
+
+                
+                <UniformGrid Columns="4" Rows="1" Margin="0,0,0,35">
+                    
+                    <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="0,0,15,0" Padding="24">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Всего продуктов" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Width="36" Height="36" Background="#1E3A8A" CornerRadius="18">
+                                    <Path Data="M5,5 H19 V19 H5 Z" Fill="Transparent" Stroke="#3B82F6" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Name="CardTotalProductsTxt" Text="12" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardProductsAlertTxt" Text="2 нет в наличии" Foreground="#94A3B8" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    
+                    <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="5,0,10,0" Padding="24">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Всего заказов" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Width="36" Height="36" Background="#311042" CornerRadius="18">
+                                    <Path Data="M5,8 H19 M12,3 V21" Fill="Transparent" Stroke="#A855F7" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Name="CardTotalOrdersTxt" Text="5" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardOrdersProgressTxt" Text="2 в процессе" Foreground="#94A3B8" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    
+                    <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="10,0,5,0" Padding="24">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Сумма продаж" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Width="36" Height="36" Background="#064E3B" CornerRadius="18">
+                                    <Path Data="M3,17 L9,11 L13,15 L21,7" Fill="Transparent" Stroke="#10B981" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Name="CardTotalSalesTxt" Text="760992₽" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Общий доход" Foreground="#94A3B8" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    
+                    <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="15,0,0,0" Padding="24">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Зарегистрированные пользователи" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Width="36" Height="36" Background="#78350F" CornerRadius="18">
+                                    <Path Data="M6,21 C6,16 18,16 18,21 M12,12 C14,12 16,10 16,7 C16,4 14,2 12,2 C10,2 8,4 8,7 C8,10 10,12 12,12 Z" Fill="Transparent" Stroke="#F59E0B" StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            <TextBlock Name="CardTotalUsersTxt" Text="3" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Text="Пользователи" Foreground="#94A3B8" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                
+                <Grid Margin="0,0,0,30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    
+                    <Button Name="TabProductsBtn" Grid.Column="0" Click="Tab_Click" Tag="Products" Background="Transparent" BorderThickness="0" Margin="0,0,30,0" Padding="10,8" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M4,6 H20 V18 H4 Z M9,10 H15" Stroke="{Binding ElementName=TabProductsText, Path=Foreground}" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Name="TabProductsText" Text="Продукты" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" FontWeight="SemiBold" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                            <Border Background="#1E3A8A" CornerRadius="10" Padding="6,2">
+                                <TextBlock Name="TabProductsBadge" Text="12" Foreground="#3B82F6" FontSize="12" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    
+                    <Button Name="TabSalesBtn" Grid.Column="1" Click="Tab_Click" Tag="Sales" Background="Transparent" BorderThickness="0" Margin="0,0,30,0" Padding="10,8" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M6,2 H18 V22 H6 Z M10,6 H14 M10,10 H14 M10,14 H14" Stroke="{Binding ElementName=TabSalesText, Path=Foreground}" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Name="TabSalesText" Text="Продажи" Foreground="#64748B" FontSize="16" FontWeight="SemiBold" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                            <Border Background="{DynamicResource ThemePanelBg}" CornerRadius="10" Padding="6,2">
+                                <TextBlock Name="TabSalesBadge" Text="5" Foreground="#94A3B8" FontSize="12" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    
+                    <Button Name="TabUsersBtn" Grid.Column="2" Click="Tab_Click" Tag="Users" Background="Transparent" BorderThickness="0" Margin="0,0,30,0" Padding="10,8" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M6,17 C6,13 14,13 14,17 M10,9 C11.6,9 13,7.6 13,6 C13,4.4 11.6,3 10,3 C8.4,3 7,4.4 7,6 C7,7.6 8.4,9 10,9 Z" Stroke="{Binding ElementName=TabUsersText, Path=Foreground}" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Name="TabUsersText" Text="Пользователи" Foreground="#64748B" FontSize="16" FontWeight="SemiBold" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                            <Border Background="{DynamicResource ThemePanelBg}" CornerRadius="10" Padding="6,2">
+                                <TextBlock Name="TabUsersBadge" Text="3" Foreground="#94A3B8" FontSize="12" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    
+                    <Button Name="TabAnalyticsBtn" Grid.Column="3" Click="Tab_Click" Tag="Analytics" Background="Transparent" BorderThickness="0" Padding="10,8" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" Stroke="{Binding ElementName=TabAnalyticsText, Path=Foreground}" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Name="TabAnalyticsText" Text="Аналитика" Foreground="#64748B" FontSize="16" FontWeight="SemiBold" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <Separator Background="{DynamicResource ThemePanelBg}" Margin="0,0,0,30" Height="1"/>
+
+                
+                <Grid Name="PanelProducts" Visibility="Visible">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,25">
+                        
+                        <Border CornerRadius="12" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Width="400" Height="45" HorizontalAlignment="Left">
+                            <Grid Margin="15,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Grid.Column="0" Data="M15.5,14 L14.71,14 L14.43,13.73 C15.41,12.59 16,11.11 16,9.5 C16,5.91 13.09,3 9.5,3 C5.91,3 3,5.91 3,9.5 C3,13.09 5.91,16 9.5,16 C11.11,16 12.59,15.41 13.73,14.43 L14,14.71 L14,15.5 L19,20.5 L20.5,19 L15.5,14 Z M9.5,14 C7.01,14 5,11.99 5,9.5 C5,7.01 7.01,5 9.5,5 C11.99,5 14,7.01 14,9.5 C14,11.99 11.99,14 9.5,14 Z" 
+                                      Fill="#64748B" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center"/>
+                                <TextBox Name="ProductSearchInput" Grid.Column="1" TextChanged="ProductSearch_TextChanged" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Margin="10,0,0,0" VerticalContentAlignment="Center" FontSize="15" Tag="Искать по названию продукта..."/>
+                            </Grid>
+                        </Border>
+
+                        
+                        <Button Click="AddProductBtn_Click" DockPanel.Dock="Right" HorizontalAlignment="Right" Background="#2563EB" Foreground="White" BorderThickness="0" Height="45" Padding="20,0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="12"/>
+                                </Style>
+                            </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="+" FontSize="20" FontWeight="Bold" Margin="0,-2,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Добавить продукт" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </DockPanel>
+
+                    
+                    <Grid Grid.Row="1">
+                        
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1,1,1,0" CornerRadius="12,12,0,0" Padding="20,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="1.2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="ПРОДУКТ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="КАТЕГОРИЯ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="2" Text="ПРОИЗВОДИТЕЛЬ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="3" Text="ЦЕНА" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="4" Text="КОЛИЧЕСТВО" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="5" Text="СТАТУС" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="6" Text="ДЕЙСТВИЕ" Foreground="#64748B" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        
+                        <ListBox Name="ProductsTableListBox" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Margin="0,46,0,0" MinHeight="400" Padding="0">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorder}"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Padding" Value="20,16"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2.5*"/>
+                                            <ColumnDefinition Width="1.5*"/>
+                                            <ColumnDefinition Width="1.5*"/>
+                                            <ColumnDefinition Width="1.2*"/>
+                                            <ColumnDefinition Width="1.2*"/>
+                                            <ColumnDefinition Width="1.2*"/>
+                                            <ColumnDefinition Width="1.2*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                             <Border CornerRadius="8" Width="40" Height="40" Margin="0,0,15,0">
+                                                 <Border.Background>
+                                                     <ImageBrush ImageSource="{Binding FullPhotoPath}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                 </Border.Background>
+                                             </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Articul, StringFormat='p\{0\}'}" Foreground="#64748B" FontSize="11" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        
+                                        <Border Grid.Column="1" Background="{DynamicResource ThemePanelBg}" CornerRadius="8" Padding="12,5" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CategoryNavigation.Title, TargetNullValue='Техника'}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="13"/>
+                                        </Border>
+
+                                        
+                                        <TextBlock Grid.Column="2" Text="{Binding Manufacturer}" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="14" VerticalAlignment="Center"/>
+
+                                        
+                                        <TextBlock Grid.Column="3" Text="{Binding Price, StringFormat='\{0:N0\}₽'}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                                        
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Name="StockQty" Text="{Binding Stock}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="SemiBold"/>
+                                            <TextBlock Text=" штук" Foreground="#64748B" FontSize="13"/>
+                                        </StackPanel>
+
+                                        
+                                        <Border Grid.Column="5" Name="StatusPill" CornerRadius="8" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Name="StatusTxt" FontSize="12" FontWeight="SemiBold"/>
+                                        </Border>
+
+                                        
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            
+                                            <Button Click="EditProductBtn_Click" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,15,0">
+                                                <Path Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" Fill="#94A3B8" Width="14" Height="14" Stretch="Uniform"/>
+                                            </Button>
+                                            
+                                            <Button Click="ViewProductBtn_Click" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,15,0">
+                                                <Path Data="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" Fill="#94A3B8" Width="15" Height="15" Stretch="Uniform"/>
+                                            </Button>
+                                            
+                                            <Button Click="DeleteProductBtn_Click" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                                <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" Fill="#EF4444" Width="14" Height="14" Stretch="Uniform"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Stock}" Value="0">
+                                            <Setter TargetName="StatusPill" Property="Background" Value="#3B0712"/>
+                                            <Setter TargetName="StatusTxt" Property="Text" Value="Нет в наличии"/>
+                                            <Setter TargetName="StatusTxt" Property="Foreground" Value="#F87171"/>
+                                            <Setter TargetName="StockQty" Property="Foreground" Value="#EF4444"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Stock, Converter={x:Null}}" Value="False">
+                                            
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+
+
+                
+                <Grid Name="PanelSales" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,25">
+                        
+                        <Border CornerRadius="12" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Width="450" Height="45" HorizontalAlignment="Left">
+                            <Grid Margin="15,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Grid.Column="0" Data="M15.5,14 L14.71,14 L14.43,13.73 C15.41,12.59 16,11.11 16,9.5 C16,5.91 13.09,3 9.5,3 C5.91,3 3,5.91 3,9.5 C3,13.09 5.91,16 9.5,16 C11.11,16 12.59,15.41 13.73,14.43 L14,14.71 L14,15.5 L19,20.5 L20.5,19 L15.5,14 Z M9.5,14 C7.01,14 5,11.99 5,9.5 C5,7.01 7.01,5 9.5,5 C11.99,5 14,7.01 14,9.5 C14,11.99 11.99,14 9.5,14 Z" 
+                                      Fill="#64748B" Width="16" Height="16" VerticalAlignment="Center"/>
+                                <TextBox Name="SalesSearchInput" Grid.Column="1" TextChanged="SalesSearch_TextChanged" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Margin="10,0,0,0" VerticalContentAlignment="Center" FontSize="15" Tag="Поиск по номеру квитанции или имени пользователя..."/>
+                            </Grid>
+                        </Border>
+
+                        
+                        <Border DockPanel.Dock="Right" HorizontalAlignment="Right" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="12" Height="45">
+                            <ComboBox Name="SalesStatusFilter" SelectionChanged="SalesStatusFilter_SelectionChanged" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" Width="180" BorderThickness="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="14">
+                                <ComboBoxItem Content="Все статусы" IsSelected="True"/>
+                                <ComboBoxItem Content="Обработка"/>
+                                <ComboBoxItem Content="Отправлен"/>
+                                <ComboBoxItem Content="Доставлен"/>
+                            </ComboBox>
+                        </Border>
+                    </DockPanel>
+
+                    
+                    <Grid Grid.Row="1">
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1,1,1,0" CornerRadius="12,12,0,0" Padding="20,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.8*"/>
+                                    <ColumnDefinition Width="1.8*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="1.3*"/>
+                                    <ColumnDefinition Width="1.3*"/>
+                                    <ColumnDefinition Width="1.8*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="НОМЕР КВИТАНЦИИ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="ПОЛЬЗОВАТЕЛЬ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="2" Text="КОНТАКТ" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="3" Text="КОЛ. ТОВАРОВ / СУММА" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="4" Text="ДАТА" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="5" Text="СТАТУС" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="6" Text="ДЕЙСТВИЕ" Foreground="#64748B" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <ListBox Name="SalesTableListBox" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Margin="0,46,0,0" MinHeight="400" Padding="0">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorder}"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Padding" Value="20,16"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.8*"/>
+                                            <ColumnDefinition Width="1.8*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="1.5*"/>
+                                            <ColumnDefinition Width="1.3*"/>
+                                            <ColumnDefinition Width="1.3*"/>
+                                            <ColumnDefinition Width="1.8*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        
+                                        <TextBlock Grid.Column="0" Text="{Binding ReceiptId, StringFormat='#TF-2024-\{0:D5\}'}" Foreground="#3B82F6" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="ReceiptNo_Click"/>
+
+                                        
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding User.Name}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding User.UserId, StringFormat='User ID: u\{0\}'}" Foreground="#64748B" FontSize="11" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding User.Email}" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13"/>
+                                            <TextBlock Text="{Binding User.Phone}" Foreground="#64748B" FontSize="12" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding ReceiptItems.Count}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text=" товара" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding TotalPrice, StringFormat='\{0:N0\}₽'}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="Bold" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        
+                                        <TextBlock Grid.Column="4" Text="{Binding DateTime, StringFormat='\{0:MMMM dd, yyyy\}'}" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
+
+                                        
+                                        <Border Grid.Column="5" Name="OrderStatusPill" CornerRadius="8" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Name="OrderStatusTxt" Text="{Binding StatusNavigation.Title}" FontSize="12" FontWeight="SemiBold"/>
+                                        </Border>
+
+                                        
+                                        <Border Grid.Column="6" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="8" Height="36" HorizontalAlignment="Stretch" Margin="5,0">
+                                            <ComboBox SelectedValuePath="Id" DisplayMemberPath="Title" SelectedValue="{Binding Status, Mode=OneWay}" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=StatusesList}" SelectionChanged="OrderStatusComboBox_SelectionChanged" Background="{DynamicResource ThemeCardBg}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="13"/>
+                                        </Border>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="1">
+                                            <Setter TargetName="OrderStatusPill" Property="Background" Value="#3F2D06"/>
+                                            <Setter TargetName="OrderStatusTxt" Property="Foreground" Value="#F59E0B"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="2">
+                                            <Setter TargetName="OrderStatusPill" Property="Background" Value="#1E3A8A"/>
+                                            <Setter TargetName="OrderStatusTxt" Property="Foreground" Value="#3B82F6"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="3">
+                                            <Setter TargetName="OrderStatusPill" Property="Background" Value="#064E3B"/>
+                                            <Setter TargetName="OrderStatusTxt" Property="Foreground" Value="#10B981"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="4">
+                                            <Setter TargetName="OrderStatusPill" Property="Background" Value="#064E3B"/>
+                                            <Setter TargetName="OrderStatusTxt" Property="Foreground" Value="#10B981"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="5">
+                                            <Setter TargetName="OrderStatusPill" Property="Background" Value="#5B1F1F"/>
+                                            <Setter TargetName="OrderStatusTxt" Property="Foreground" Value="#EF4444"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+
+
+                
+                <Grid Name="PanelUsers" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,25">
+                        
+                        <Border CornerRadius="12" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Width="400" Height="45" HorizontalAlignment="Left">
+                            <Grid Margin="15,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Grid.Column="0" Data="M15.5,14 L14.71,14 L14.43,13.73 C15.41,12.59 16,11.11 16,9.5 C16,5.91 13.09,3 9.5,3 C5.91,3 3,5.91 3,9.5 C3,13.09 5.91,16 9.5,16 C11.11,16 12.59,15.41 13.73,14.43 L14,14.71 L14,15.5 L19,20.5 L20.5,19 L15.5,14 Z M9.5,14 C7.01,14 5,11.99 5,9.5 C5,7.01 7.01,5 9.5,5 C11.99,5 14,7.01 14,9.5 C14,11.99 11.99,14 9.5,14 Z" 
+                                      Fill="#64748B" Width="16" Height="16" VerticalAlignment="Center"/>
+                                <TextBox Name="UserSearchInput" Grid.Column="1" TextChanged="UserSearch_TextChanged" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" Margin="10,0,0,0" VerticalContentAlignment="Center" FontSize="15" Tag="Искать пользователя..."/>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+
+                    
+                    <Grid Grid.Row="1">
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1,1,1,0" CornerRadius="12,12,0,0" Padding="20,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="USER" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="EMAIL" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="2" Text="PHONE" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="3" Text="ROLE" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="4" Text="JOINED" Foreground="#64748B" FontSize="12" FontWeight="Bold"/>
+                            </Grid>
+                        </Border>
+
+                        <ListBox Name="UsersTableListBox" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" Margin="0,46,0,0" MinHeight="400" Padding="0">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorder}"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Padding" Value="20,16"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource ThemePanelBg}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="2*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <Grid Margin="0,0,15,0">
+                                                <Ellipse Width="36" Height="36" Fill="#3B82F6"/>
+                                                
+                                                <TextBlock Text="{Binding Name[0]}" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding UserId, StringFormat='u\{0\}'}" Foreground="#64748B" FontSize="11" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        
+                                        <TextBlock Grid.Column="1" Text="{Binding Email}" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
+
+                                        
+                                        <TextBlock Grid.Column="2" Text="{Binding Phone}" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
+
+                                        
+                                        <Border Grid.Column="3" Name="RoleBadge" CornerRadius="8" Padding="12,5" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Name="RoleTxt" Text="{Binding Role}" FontSize="12" FontWeight="Bold"/>
+                                        </Border>
+
+                                        
+                                        <TextBlock Grid.Column="4" Text="Июнь 15, 2023" Name="UserJoinedTxt" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Role}" Value="admin">
+                                            <Setter TargetName="RoleBadge" Property="Background" Value="#2563EB"/>
+                                            <Setter TargetName="RoleTxt" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="RoleTxt" Property="Text" Value="Администратор"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Role}" Value="Администратор">
+                                            <Setter TargetName="RoleBadge" Property="Background" Value="#2563EB"/>
+                                            <Setter TargetName="RoleTxt" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="RoleTxt" Property="Text" Value="Администратор"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Role}" Value="Клиент">
+                                            <Setter TargetName="RoleBadge" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="RoleTxt" Property="Foreground" Value="#94A3B8"/>
+                                            <Setter TargetName="RoleTxt" Property="Text" Value="Пользователь"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Role}" Value="user">
+                                            <Setter TargetName="RoleBadge" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="RoleTxt" Property="Foreground" Value="#94A3B8"/>
+                                            <Setter TargetName="RoleTxt" Property="Text" Value="Пользователь"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Role}" Value="User">
+                                            <Setter TargetName="RoleBadge" Property="Background" Value="#1E293B"/>
+                                            <Setter TargetName="RoleTxt" Property="Foreground" Value="#94A3B8"/>
+                                            <Setter TargetName="RoleTxt" Property="Text" Value="Пользователь"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+
+                <!-- Панель Аналитики -->
+                <Grid Name="PanelAnalytics" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Ряд дополнительных карточек аналитики -->
+                    <UniformGrid Grid.Row="0" Columns="3" Rows="1" Margin="0,0,0,30">
+                        <!-- Средний чек -->
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="0,0,15,0" Padding="24">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Средний чек" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="36" Height="36" Background="#1E3A8A" CornerRadius="18">
+                                        <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M11,6V14H13V6H11M11,16V18H13V16H11Z" Fill="Transparent" Stroke="#3B82F6" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Name="CardAvgCheckTxt" Text="0₽" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <TextBlock Text="На основе оплаченных заказов" Foreground="#94A3B8" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Продано товаров -->
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="5,0,10,0" Padding="24">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Продано товаров" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="36" Height="36" Background="#064E3B" CornerRadius="18">
+                                        <Path Data="M17,18L12,15.82L7,18V5H17M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" Fill="Transparent" Stroke="#10B981" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Name="CardTotalUnitsSoldTxt" Text="0 шт" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                                <TextBlock Text="Общий объем продаж" Foreground="#94A3B8" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Популярная категория -->
+                        <Border Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Margin="15,0,0,0" Padding="24">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Топовая категория" Foreground="#94A3B8" FontSize="14" FontWeight="Medium" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Width="36" Height="36" Background="#78350F" CornerRadius="18">
+                                        <Path Data="M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z" Fill="Transparent" Stroke="#F59E0B" StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Name="CardTopCategoryTxt" Text="Нет данных" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="24" FontWeight="Bold" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Name="CardTopCategoryRevenueTxt" Text="0₽ дохода" Foreground="#94A3B8" FontSize="12"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- Основной блок аналитики -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- График продаж -->
+                        <Border Grid.Column="0" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Padding="25" Margin="0,0,20,0">
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+                                    <StackPanel>
+                                        <TextBlock Text="Динамика продаж" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="18" FontWeight="Bold"/>
+                                        <TextBlock Text="Суммарная выручка по дням за последнюю неделю" Foreground="#94A3B8" FontSize="13" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Grid>
+                                    <!-- Canvas для динамического рендеринга графика -->
+                                    <Canvas Name="SalesChartCanvas" SizeChanged="SalesChartCanvas_SizeChanged" MinHeight="280" Background="Transparent"/>
+                                </Grid>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Распределение по категориям -->
+                        <Border Grid.Column="1" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="16" Padding="25">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Продажи по категориям" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+                                
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel Name="CategoryStatsPanel">
+                                        <!-- Сюда программно добавятся категории с красивыми кастомными прогресс-барами -->
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        
+        <Grid Name="ModalOverlay" Grid.RowSpan="2" Background="#B0050814" Visibility="Collapsed" Panel.ZIndex="1000">
+            <Border Name="ProductModalBorder" Width="500" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource ThemePanelBg}" CornerRadius="16" Padding="25" BorderBrush="{DynamicResource ThemeBorderLight}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Name="ProductFormColumn" Width="500"/>
+                        <ColumnDefinition Name="VariationsColumn" Width="0"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Column 0: Main Product Form -->
+                    <StackPanel Grid.Column="0">
+                        <Grid Margin="0,0,0,25">
+                            <TextBlock Name="ModalTitle" Text="Добавить новый продукт" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="20" FontWeight="Bold"/>
+                            <Button Click="CloseModalBtn_Click" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                <TextBlock Text="✕" Foreground="#94A3B8" FontSize="18" FontWeight="Bold"/>
+                            </Button>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <Grid>
+                                    <TextBlock Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6">
+                                        <Run Text="Название"/>
+                                        <Run Text=" *" Foreground="#EF4444"/>
+                                    </TextBlock>
+                                    <TextBlock Name="NameCharCount" Text="0/60" Foreground="#F87171" FontSize="11" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="12,0" Height="40">
+                                    <TextBox Name="ModalNameInput" TextChanged="ModalNameInput_TextChanged" MaxLength="60" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6">
+                                    <Run Text="Производитель"/>
+                                    <Run Text=" *" Foreground="#EF4444"/>
+                                </TextBlock>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="12,0" Height="40">
+                                    <TextBox Name="ModalManufacturerInput" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6">
+                                    <Run Text="Категория"/>
+                                    <Run Text=" *" Foreground="#EF4444"/>
+                                </TextBlock>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="5,0" Height="40">
+                                    <ComboBox Name="ModalCategoryCombo" DisplayMemberPath="Title" SelectedValuePath="Id" Background="#0F172A" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6">
+                                    <Run Text="Цена"/>
+                                    <Run Text=" *" Foreground="#EF4444"/>
+                                </TextBlock>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="12,0" Height="40">
+                                    <Grid>
+                                        <TextBox Name="ModalPriceInput" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                        <TextBlock Text="₽" Foreground="#94A3B8" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Количество" Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6"/>
+                                <Grid Height="40">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Button Click="SpinnerMinus_Click" Grid.Column="0" Content="—" Background="#0F172A" Foreground="#94A3B8" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="10,0,0,10"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                    
+                                    <Border Grid.Column="1" Background="#0F172A" BorderThickness="1,0" BorderBrush="{DynamicResource ThemeBorder}">
+                                        <TextBox Name="ModalStockInput" Text="0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" TextAlignment="Center" VerticalContentAlignment="Center" FontSize="15" FontWeight="Bold"/>
+                                    </Border>
+                                    
+                                    <Button Click="SpinnerPlus_Click" Grid.Column="2" Content="+" Background="#0F172A" Foreground="#94A3B8" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="0,10,10,0"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Ссылка на картинку URL" Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6"/>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="12,0" Height="40">
+                                    <TextBox Name="ModalImageInput" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,25">
+                            <StackPanel>
+                                <TextBlock Text="Описание" Foreground="#94A3B8" FontSize="13" Margin="0,0,0,6"/>
+                                <Border Background="#0F172A" CornerRadius="10" Padding="12" Height="100">
+                                    <TextBox Name="ModalDescInput" AcceptsReturn="True" TextWrapping="Wrap" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Click="CloseModalBtn_Click" Grid.Column="0" Content="Выйти" Background="{DynamicResource ThemeBorderLight}" Foreground="White" BorderThickness="0" Height="45" FontWeight="SemiBold" Cursor="Hand">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="10"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <Button Click="SaveModalProductBtn_Click" Grid.Column="2" Name="ModalSaveBtn" Background="#2563EB" Foreground="White" BorderThickness="0" Height="45" FontWeight="SemiBold" Cursor="Hand">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="10"/>
+                                    </Style>
+                                </Button.Resources>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Name="ModalSaveBtnText" Text="Добавить продукт" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Column 1: Variations Panel -->
+                    <StackPanel Grid.Column="1" Margin="25,0,0,0" Name="VariationsPanel" Visibility="Collapsed">
+                        <TextBlock Text="Вариации товара" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                        
+                        <Border Background="#0F172A" CornerRadius="10" Padding="10" Height="220" BorderBrush="{DynamicResource ThemeBorderLight}" BorderThickness="1">
+                            <ListBox Name="VariationsListBox" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="0,0,0,1" Padding="0,5" Width="320">
+                                            <DockPanel>
+                                                <Button Click="DeleteVariation_Click" Tag="{Binding Id}" DockPanel.Dock="Right" Content="✕" Background="#EF4444" Foreground="White" Width="26" Height="26" BorderThickness="0" FontWeight="Bold" Cursor="Hand" Margin="5,0,0,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                </Button>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Foreground="{DynamicResource ThemeTextPrimary}" FontWeight="Bold" FontSize="13"/>
+                                                    <TextBlock Text="{Binding Price, StringFormat={}{0:N0} ₽}" Foreground="#94A3B8" FontSize="11" Margin="0,2,0,0"/>
+                                                    <TextBlock Text="{Binding Stock, StringFormat={}Остаток: {0} шт.}" Foreground="#64748B" FontSize="10"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <TextBlock Text="Добавить новую вариацию" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="14" FontWeight="Bold" Margin="0,15,0,10"/>
+
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Название (например: Черный космос)" Foreground="#94A3B8" FontSize="11" Margin="0,0,0,4"/>
+                            <Border Background="#0F172A" CornerRadius="8" Padding="10,0" Height="36">
+                                <TextBox Name="VarNameInput" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Цена" Foreground="#94A3B8" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="#0F172A" CornerRadius="8" Padding="10,0" Height="36">
+                                    <TextBox Name="VarPriceInput" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Количество" Foreground="#94A3B8" FontSize="11" Margin="0,0,0,4"/>
+                                <Border Background="#0F172A" CornerRadius="8" Padding="10,0" Height="36">
+                                    <TextBox Name="VarStockInput" Text="0" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" CaretBrush="{DynamicResource ThemeTextPrimary}" BorderThickness="0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Button Click="AddVariation_Click" Content="Добавить вариацию" Background="#2563EB" Foreground="White" BorderThickness="0" Height="38" FontWeight="SemiBold" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="8"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+    </Grid>
+</Window>

@@ -1,0 +1,141 @@
+:root {
+  --theme-bg: #0A0E1A;
+  --theme-header-bg: #050A18;
+  --theme-card-bg: #111827;
+  --theme-panel-bg: #1E293B;
+  --theme-dark-bg: #0F172A;
+  --theme-text-primary: #FFFFFF;
+  --theme-text-secondary: #94A3B8;
+  --theme-text-muted: #64748B;
+  --theme-border: #1E293B;
+  --theme-border-light: #334155;
+  --theme-accent: #2563EB;
+  --theme-accent-hover: #1D4ED8;
+  --theme-textbox-bg: #1E293B;
+  --theme-combobox-bg: #1E293B;
+  --theme-success: #10B981;
+  --theme-success-bg: #064E3B;
+  --theme-danger: #EF4444;
+  --theme-danger-bg: #7F1D1D;
+  --theme-warning: #F59E0B;
+  --theme-warning-bg: #78350F;
+
+  --theme-login-gradient: linear-gradient(180deg, #0A0E1A 0%, #2563EB 100%);
+  --theme-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --theme-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='light'] {
+  --theme-bg: #F4F8FC;
+  --theme-header-bg: #E1ECF7;
+  --theme-card-bg: #FFFFFF;
+  --theme-panel-bg: #EBF3FC;
+  --theme-dark-bg: #FFFFFF;
+  --theme-text-primary: #0F203D;
+  --theme-text-secondary: #4B6584;
+  --theme-text-muted: #778CA3;
+  --theme-border: #D1E2F3;
+  --theme-border-light: #DCE6F1;
+  --theme-accent: #2563EB;
+  --theme-accent-hover: #1D4ED8;
+  --theme-textbox-bg: #EBF2FA;
+  --theme-combobox-bg: #FFFFFF;
+  --theme-success: #10B981;
+  --theme-success-bg: #D1FAE5;
+  --theme-danger: #EF4444;
+  --theme-danger-bg: #FEE2E2;
+  --theme-warning: #F59E0B;
+  --theme-warning-bg: #FEF3C7;
+
+  --theme-login-gradient: linear-gradient(180deg, #F4F8FC 0%, #B0CBE9 100%);
+  --theme-shadow: 0 4px 20px rgba(15, 32, 61, 0.08);
+  --theme-card-shadow: 0 2px 10px rgba(15, 32, 61, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--theme-bg);
+  color: var(--theme-text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-muted);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+}
+
+a {
+  color: var(--theme-accent);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  header, .no-print, button {
+    display: none !important;
+  }
+
+  .receipt-card {
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    background: #FFFFFF !important;
+  }
+}
