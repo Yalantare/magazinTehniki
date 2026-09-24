@@ -393,25 +393,33 @@
     ]
   },
   "packageFolders": {
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages": {}
+    "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/whoa/4 курс/МДК/magazinTehniki/admin/TehnikiApp/TehnikiApp.csproj",
+      "projectUniqueName": "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\TehnikiApp\\TehnikiApp.csproj",
       "projectName": "TehnikiApp",
-      "projectPath": "/Users/whoa/4 курс/МДК/magazinTehniki/admin/TehnikiApp/TehnikiApp.csproj",
-      "packagesPath": "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages",
-      "outputPath": "/Users/whoa/4 курс/МДК/magazinTehniki/admin/TehnikiApp/obj/",
+      "projectPath": "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\TehnikiApp\\TehnikiApp.csproj",
+      "packagesPath": "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages",
+      "outputPath": "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\TehnikiApp\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/Users/whoa/4 курс/МДК/magazinTehniki/admin/NuGet.Config",
-        "/Users/whoa/.nuget/NuGet/NuGet.Config"
+        "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\NuGet.Config",
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -451,12 +459,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
@@ -465,7 +467,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.416/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.420/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

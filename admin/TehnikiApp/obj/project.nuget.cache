@@ -1,14 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "R9+vJ+KPHgg=",
+  "dgSpecHash": "yVlT1p56n3M=",
   "success": true,
-  "projectFilePath": "/Users/whoa/4 курс/МДК/magazinTehniki/admin/TehnikiApp/TehnikiApp.csproj",
+  "projectFilePath": "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\TehnikiApp\\TehnikiApp.csproj",
   "expectedPackageFiles": [
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages/microsoft.extensions.dependencyinjection.abstractions/8.0.2/microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages/microsoft.extensions.logging.abstractions/8.0.3/microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages/pdfsharp/6.2.4/pdfsharp.6.2.4.nupkg.sha512",
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages/system.security.cryptography.pkcs/8.0.1/system.security.cryptography.pkcs.8.0.1.nupkg.sha512",
-    "/Users/whoa/4 курс/МДК/magazinTehniki/admin/.nuget_packages/microsoft.windowsdesktop.app.ref/8.0.22/microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512"
+    "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages\\microsoft.extensions.logging.abstractions\\8.0.3\\microsoft.extensions.logging.abstractions.8.0.3.nupkg.sha512",
+    "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages\\pdfsharp\\6.2.4\\pdfsharp.6.2.4.nupkg.sha512",
+    "D:\\Wrearrew\\4 курс 1 семестр\\MagazineTehniki\\magazinTehniki\\admin\\.nuget_packages\\system.security.cryptography.pkcs\\8.0.1\\system.security.cryptography.pkcs.8.0.1.nupkg.sha512"
   ],
   "logs": []
 }
