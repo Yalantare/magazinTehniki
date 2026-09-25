@@ -235,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Check, Star, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
@@ -251,6 +251,32 @@ const product = computed(() => {
 const selectedVariation = ref(
   product.value?.productVariations ? product.value.productVariations[0] : null
 )
+
+watch(product, (newVal) => {
+  if (newVal?.productVariations?.length && !selectedVariation.value) {
+    selectedVariation.value = newVal.productVariations[0]
+  }
+  if (newVal?.articul) {
+    store.loadReviews(newVal.articul)
+  }
+}, { immediate: true })
+
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    const p = store.products.find(x => String(x.articul) === String(newId))
+    selectedVariation.value = p?.productVariations?.length ? p.productVariations[0] : null
+    quantity.value = 1
+    if (p?.articul) {
+      store.loadReviews(p.articul)
+    }
+  }
+})
+
+onMounted(() => {
+  if (product.value?.articul) {
+    store.loadReviews(product.value.articul)
+  }
+})
 
 const quantity = ref(1)
 const successMsg = ref('')
@@ -292,10 +318,10 @@ function add() {
   }, 3000)
 }
 
-function sendReview() {
+async function sendReview() {
   if (!product.value || !commentText.value) return
   const name = authorName.value.trim() || store.user?.name || 'Покупатель'
-  store.addReview(product.value.articul, ratingScore.value, commentText.value, name)
+  await store.addReview(product.value.articul, ratingScore.value, commentText.value, name)
   commentText.value = ''
   authorName.value = ''
   isFormOpen.value = false

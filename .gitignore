@@ -6,3 +6,14 @@ venv/
 env/
 .env
 .DS_Store
+
+# Dotnet
+bin/
+obj/
+*.user
+*.suo
+
+# Node
+node_modules/
+dist/
+

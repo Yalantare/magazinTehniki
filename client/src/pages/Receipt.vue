@@ -76,14 +76,19 @@
                   <tr v-for="item in receipt.receiptItems" :key="item.id">
                     <td>
                       <div class="item-name-cell">
-                        <span class="item-title">{{ item.product?.title || 'Товар' }}</span>
+                        <span class="item-title">
+                          {{ item.product?.title || 'Товар' }}
+                          <span v-if="item.productVariation?.name" style="color: var(--theme-text-muted); font-size: 13px;">
+                            ({{ item.productVariation.name }})
+                          </span>
+                        </span>
                       </div>
                     </td>
                     <td style="text-align: center;" class="qty-cell">
                       {{ item.quantity }} шт.
                     </td>
                     <td style="text-align: right;" class="total-cell">
-                      {{ (item.priceAtPurchase * item.quantity).toLocaleString('ru-RU') }} ₽
+                      {{ ((item.priceAtPurchase || 0) * item.quantity).toLocaleString('ru-RU') }} ₽
                     </td>
                   </tr>
                 </tbody>
@@ -93,7 +98,7 @@
             <div class="totals-section">
               <div class="total-row">
                 <span class="total-label">ИТОГО К ОПЛАТЕ</span>
-                <span class="total-value">{{ receipt.totalPrice.toLocaleString('ru-RU') }} ₽</span>
+                <span class="total-value">{{ (receipt.totalPrice || 0).toLocaleString('ru-RU') }} ₽</span>
               </div>
             </div>
 
@@ -124,23 +129,41 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Check, Printer, Clock, ShoppingBag } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
+import { api } from '../api.js'
 
 const route = useRoute()
 const router = useRouter()
 
+const serverReceipt = ref(null)
+
 const receipt = computed(() => {
-  return store.orders.find(o => String(o.receiptId) === String(route.params.id)) || store.orders[0]
+  if (serverReceipt.value) return serverReceipt.value
+  return store.orders.find(o => String(o.receiptId) === String(route.params.id)) || null
+})
+
+onMounted(async () => {
+  const orderId = route.params.id
+  if (orderId) {
+    try {
+      const data = await api.getOrder(orderId)
+      if (data && data.receiptId) {
+        serverReceipt.value = data
+      }
+    } catch (e) {
+    }
+  }
 })
 
 const formattedDate = computed(() => {
-  if (!receipt.value) return ''
+  if (!receipt.value || !receipt.value.dateTime) return ''
   const d = new Date(receipt.value.dateTime)
-  return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU')
+  if (isNaN(d.getTime())) return receipt.value.dateTime
+  return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 })
 
 function printReceipt() {

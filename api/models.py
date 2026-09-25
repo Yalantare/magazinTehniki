@@ -184,3 +184,24 @@ class ReviewCreate(SQLModel):
 
 class StatusUpdate(SQLModel):
     status_id: int
+
+class VariationDirectCreate(SQLModel):
+    productId: int
+    name: str
+    price: float
+    stock: int = 0
+
+class CreateOrderItemRequest(SQLModel):
+    product_id: int
+    variation_id: Optional[int] = None
+    quantity: int = 1
+    price: Optional[float] = None
+
+class CreateOrderRequest(SQLModel):
+    user_id: Optional[int] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = ""
+    items: list[CreateOrderItemRequest] = []
+

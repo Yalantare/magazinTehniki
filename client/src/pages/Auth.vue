@@ -210,17 +210,17 @@ const regPhone = ref('')
 const regPass = ref('')
 const agree = ref(false)
 
-function submitLogin() {
+async function submitLogin() {
   if (!loginEmail.value || !loginPass.value) {
     error.value = 'Заполните поля'
     return
   }
-  store.login(loginEmail.value, loginPass.value)
+  await store.login(loginEmail.value, loginPass.value)
   router.push('/catalog')
 }
 
-function loginDemo() {
-  store.login('hayrullinrafael2@gmail.com', 'password123')
+async function loginDemo() {
+  await store.login('hayrullinrafael2@gmail.com', 'password123')
   router.push('/catalog')
 }
 
@@ -229,7 +229,7 @@ function loginGuest() {
   router.push('/catalog')
 }
 
-function submitRegister() {
+async function submitRegister() {
   if (!regName.value || !regEmail.value || !regPhone.value || !regPass.value) {
     error.value = 'Заполните все поля'
     return
@@ -238,7 +238,7 @@ function submitRegister() {
     error.value = 'Подтвердите согласие'
     return
   }
-  store.register(regName.value, regEmail.value, regPhone.value, regPass.value)
+  await store.register(regName.value, regEmail.value, regPhone.value, regPass.value)
   router.push('/catalog')
 }
 </script>

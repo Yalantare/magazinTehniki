@@ -15,7 +15,7 @@
         </button>
       </div>
 
-      <form v-else class="checkout-grid" @submit.prevent="submitOrder">
+      <form v-else class="checkout-grid" novalidate @submit.prevent="submitOrder">
         <div class="form-col">
           <div v-if="error" class="error-notice">
             {{ error }}
@@ -248,8 +248,17 @@
               <span class="total-value">{{ store.getCartTotal().toLocaleString('ru-RU') }} ₽</span>
             </div>
 
-            <button type="submit" class="place-order-btn">
-              Оформить заказ
+            <div v-if="error" class="error-notice" style="margin-top: 16px; margin-bottom: 0;">
+              {{ error }}
+            </div>
+
+            <button
+              type="submit"
+              class="place-order-btn"
+              :disabled="isSubmitting"
+              :style="{ opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }"
+            >
+              {{ isSubmitting ? 'Оформление заказа...' : 'Оформить заказ' }}
             </button>
           </div>
         </div>
@@ -281,16 +290,31 @@ const cardExpiry = ref('12/28')
 const cardCvv = ref('777')
 
 const error = ref('')
+const isSubmitting = ref(false)
 
-function submitOrder() {
+async function submitOrder() {
+  if (isSubmitting.value) return
   if (!name.value || !phone.value || !city.value || !street.value || !house.value) {
-    error.value = 'Заполните поля доставки'
+    error.value = 'Заполните поля доставки (ФИО, телефон, город, улица, дом)'
     return
   }
 
-  const fullAddress = city.value + ', ' + street.value + ', ' + house.value + ', ' + apartment.value
-  const newOrder = store.createOrder(fullAddress)
-  router.push('/receipt/' + newOrder.receiptId)
+  isSubmitting.value = true
+  error.value = ''
+  try {
+    const fullAddress = city.value + ', ' + street.value + ', ' + house.value + (apartment.value ? ', ' + apartment.value : '')
+    const newOrder = await store.createOrder(fullAddress, name.value, phone.value)
+    if (newOrder && newOrder.receiptId) {
+      router.push('/receipt/' + newOrder.receiptId)
+    } else {
+      router.push('/profile?tab=history')
+    }
+  } catch (err) {
+    console.error('Ошибка создания заказа:', err)
+    error.value = err.message || 'Ошибка оформления заказа'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
