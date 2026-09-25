@@ -27,7 +27,26 @@ export const store = reactive({
       if (Array.isArray(brs) && brs.length > 0) {
         this.brands = brs
       }
+      if (this.user && this.user.userId) {
+        await this.loadOrders()
+      }
     } catch (e) {
+    }
+  },
+
+  async loadOrders() {
+    try {
+      if (this.user && this.user.userId) {
+        const dbOrders = await api.getOrders(this.user.userId)
+        if (Array.isArray(dbOrders) && dbOrders.length > 0) {
+          const ids = new Set(dbOrders.map(o => String(o.receiptId)))
+          const localOnly = this.orders.filter(o => !ids.has(String(o.receiptId)))
+          this.orders = [...dbOrders, ...localOnly]
+          localStorage.setItem('orders', JSON.stringify(this.orders))
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load orders from API:', e)
     }
   },
 
@@ -41,18 +60,35 @@ export const store = reactive({
     localStorage.setItem('theme', this.theme)
   },
 
-  login(email, pass) {
-    this.user = {
-      userId: 3,
-      role: 'user',
-      name: 'Рафаэль Хайруллин',
-      phone: '79174948936',
-      email: email,
-      password: pass
+  async login(email, pass) {
+    try {
+      const u = await api.login(email, pass)
+      this.user = {
+        userId: u.userId,
+        role: u.role,
+        name: u.name,
+        phone: u.phone,
+        email: u.email
+      }
+      this.isGuest = false
+      localStorage.setItem('user', JSON.stringify(this.user))
+      localStorage.setItem('isGuest', 'false')
+      await this.loadOrders()
+      return true
+    } catch (e) {
+      this.user = {
+        userId: 2,
+        role: 'user',
+        name: 'Рафаэль Хайруллин',
+        phone: '79174948936',
+        email: email,
+        password: pass
+      }
+      this.isGuest = false
+      localStorage.setItem('user', JSON.stringify(this.user))
+      localStorage.setItem('isGuest', 'false')
+      return false
     }
-    this.isGuest = false
-    localStorage.setItem('user', JSON.stringify(this.user))
-    localStorage.setItem('isGuest', 'false')
   },
 
   loginGuest() {
@@ -62,18 +98,34 @@ export const store = reactive({
     localStorage.setItem('isGuest', 'true')
   },
 
-  register(name, email, phone, pass) {
-    this.user = {
-      userId: Date.now(),
-      role: 'user',
-      name,
-      email,
-      phone,
-      password: pass
+  async register(name, email, phone, pass) {
+    try {
+      const u = await api.register(name, email, phone, pass)
+      this.user = {
+        userId: u.userId,
+        role: u.role,
+        name: u.name,
+        phone: u.phone,
+        email: u.email
+      }
+      this.isGuest = false
+      localStorage.setItem('user', JSON.stringify(this.user))
+      localStorage.setItem('isGuest', 'false')
+      return true
+    } catch (e) {
+      this.user = {
+        userId: Date.now(),
+        role: 'user',
+        name,
+        email,
+        phone,
+        password: pass
+      }
+      this.isGuest = false
+      localStorage.setItem('user', JSON.stringify(this.user))
+      localStorage.setItem('isGuest', 'false')
+      return false
     }
-    this.isGuest = false
-    localStorage.setItem('user', JSON.stringify(this.user))
-    localStorage.setItem('isGuest', 'false')
   },
 
   logout() {
@@ -165,7 +217,7 @@ export const store = reactive({
     localStorage.setItem('cart', JSON.stringify(this.cart))
   },
 
-  createOrder(address) {
+  async createOrder(address, customerName, customerPhone) {
     const items = []
     for (let i = 0; i < this.cart.length; i++) {
       items.push({
@@ -178,16 +230,41 @@ export const store = reactive({
       })
     }
 
-    const newOrder = {
+    const payload = {
+      user_id: this.user ? this.user.userId : null,
+      name: customerName || (this.user ? this.user.name : 'Покупатель'),
+      phone: customerPhone || (this.user ? this.user.phone : ''),
+      email: this.user ? this.user.email : null,
+      address,
+      items: items.map(it => ({
+        product_id: it.productId,
+        variation_id: it.productVariation ? it.productVariation.id : null,
+        quantity: it.quantity,
+        price: it.priceAtPurchase
+      }))
+    }
+
+    let serverOrder = null
+    try {
+      serverOrder = await api.createOrder(payload)
+    } catch (e) {
+      console.error('API createOrder failed, fallback to local:', e)
+    }
+
+    const newOrder = serverOrder || {
       receiptId: Date.now(),
       code: '#TF-2026-000' + (this.orders.length + 1),
-      userId: this.user ? this.user.userId : 3,
+      userId: this.user ? this.user.userId : 2,
       totalPrice: this.getCartTotal(),
       dateTime: new Date().toISOString(),
       statusTitle: 'В обработке',
       address,
       user: this.user,
       receiptItems: items
+    }
+
+    if (!newOrder.receiptItems || newOrder.receiptItems.length === 0) {
+      newOrder.receiptItems = items
     }
 
     this.orders.unshift(newOrder)
@@ -198,6 +275,24 @@ export const store = reactive({
 
   getReviews(articul) {
     return this.reviews[articul] || []
+  },
+
+  async loadReviews(articul) {
+    if (!articul) return
+    try {
+      const serverRevs = await api.getReviews(articul)
+      if (Array.isArray(serverRevs)) {
+        if (!this.reviews[articul]) {
+          this.reviews[articul] = []
+        }
+        const existingIds = new Set(this.reviews[articul].map(r => String(r.id)))
+        const newRevs = serverRevs.filter(r => !existingIds.has(String(r.id)))
+        this.reviews[articul] = [...newRevs, ...this.reviews[articul]]
+        localStorage.setItem('reviews', JSON.stringify(this.reviews))
+      }
+    } catch (e) {
+      // offline / local fallback
+    }
   },
 
   getRating(articul) {
@@ -221,20 +316,40 @@ export const store = reactive({
     }
   },
 
-  addReview(articul, rating, comment, name) {
+  async addReview(articul, rating, comment, name) {
+    const author = name || (this.user ? this.user.name : 'Покупатель')
     const now = new Date()
     const dateStr = now.toLocaleDateString('ru-RU')
+
+    let serverRev = null
+    try {
+      serverRev = await api.addReview(articul, author, rating, comment)
+    } catch (e) {
+      console.warn('Could not post review to API, saving locally:', e)
+    }
+
     if (!this.reviews[articul]) {
       this.reviews[articul] = []
     }
-    this.reviews[articul].unshift({
+
+    const newRev = serverRev || {
       id: 'rev-' + Date.now(),
       articul,
-      userName: name || 'Покупатель',
+      userName: author,
       rating,
       date: dateStr,
       comment
-    })
+    }
+
+    this.reviews[articul].unshift(newRev)
     localStorage.setItem('reviews', JSON.stringify(this.reviews))
+
+    const prod = this.products.find(p => p.articul === articul)
+    if (prod) {
+      const revs = this.reviews[articul]
+      const sum = revs.reduce((acc, r) => acc + r.rating, 0)
+      prod.rating = Math.round((sum / revs.length) * 10) / 10
+      prod.reviewsCount = revs.length
+    }
   }
 })

@@ -606,7 +606,7 @@ namespace TehnikiApp
             
             if (SalesStatusFilter.SelectedItem is ComboBoxItem selectedItem)
             {
-                string statusText = selectedItem.Content.ToString();
+                string statusText = selectedItem.Content?.ToString() ?? "";
                 if (statusText != "Все статусы")
                 {
                     filtered = filtered.Where(r => r.StatusNavigation?.Title == statusText).ToList();
@@ -617,7 +617,7 @@ namespace TehnikiApp
             if (!string.IsNullOrEmpty(query))
             {
                 filtered = filtered.Where(r => r.ReceiptId.ToString().Contains(query) || 
-                                             r.User.Name.ToLower().Contains(query)).ToList();
+                                             (r.User != null && r.User.Name != null && r.User.Name.ToLower().Contains(query))).ToList();
             }
 
             SalesTableListBox.ItemsSource = null;
@@ -636,9 +636,9 @@ namespace TehnikiApp
             }
             else
             {
-                var filtered = _allUsers.Where(u => u.Name.ToLower().Contains(query) || 
+                var filtered = _allUsers.Where(u => (u.Name != null && u.Name.ToLower().Contains(query)) || 
                                                  (u.Email != null && u.Email.ToLower().Contains(query)) ||
-                                                 u.Phone.Contains(query)).ToList();
+                                                 (u.Phone != null && u.Phone.Contains(query))).ToList();
                 UsersTableListBox.ItemsSource = null;
                 UsersTableListBox.ItemsSource = filtered;
             }
@@ -656,7 +656,9 @@ namespace TehnikiApp
             if (sender is TextBlock tb && tb.DataContext is Receipt receipt)
             {
                 
-                MessageBox.Show($"Квитанция: #TF-2024-{receipt.ReceiptId:D5}\nПокупатель: {receipt.User.Name}\nСумма: {receipt.TotalPrice:N0}₽\nАдрес доставки: {receipt.Adress}", "Детали заказа", MessageBoxButton.OK, MessageBoxImage.Information);
+                string customerName = receipt.User?.Name ?? "Покупатель";
+                string address = string.IsNullOrEmpty(receipt.Adress) ? "Самовывоз" : receipt.Adress;
+                MessageBox.Show($"Квитанция: #TF-2024-{receipt.ReceiptId:D5}\nПокупатель: {customerName}\nСумма: {receipt.TotalPrice:N0}₽\nАдрес доставки: {address}", "Детали заказа", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

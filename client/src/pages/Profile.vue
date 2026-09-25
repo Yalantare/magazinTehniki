@@ -208,13 +208,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
 
 const route = useRoute()
 const router = useRouter()
+
+onMounted(async () => {
+  await store.loadOrders()
+})
 
 const activeTab = ref(route.query.tab === 'history' ? 'history' : 'personal')
 const isEditing = ref(false)

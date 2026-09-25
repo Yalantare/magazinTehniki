@@ -713,6 +713,88 @@ def get_all_orders(session: Session = Depends(database.get_session)):
     ).all()
     return [format_receipt(o, session) for o in orders]
 
+@app.post("/api/orders")
+@app.post("/api/orders/create")
+@app.post("/api/Receipts/create")
+def create_order(data: models.CreateOrderRequest, session: Session = Depends(database.get_session)):
+    user = None
+    if data.user_id:
+        user = session.get(models.User, data.user_id)
+
+    if not user and data.email:
+        user = session.exec(select(models.User).where(models.User.email == data.email)).first()
+
+    if not user and data.phone:
+        user = session.exec(select(models.User).where(models.User.phone == data.phone)).first()
+
+    if not user:
+        email = data.email or f"customer_{int(datetime.now().timestamp())}@shop.ru"
+        user = models.User(
+            name=data.name or "Покупатель",
+            phone=data.phone or "",
+            email=email,
+            password="guest",
+            role="user"
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+
+    now_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    order = models.Receipt(
+        code="",
+        user_id=user.user_id,
+        total_price=0.0,
+        date_time=now_str,
+        status=1,
+        status_title="В обработке",
+        order_status=1,
+        address=data.address or ""
+    )
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    order.code = f"#TF-{datetime.now().year}-{order.receipt_id:05d}"
+
+    total_price = 0.0
+    for it in data.items:
+        prod = session.get(models.Product, it.product_id)
+        if not prod:
+            continue
+
+        item_price = prod.price
+        if it.price is not None and it.price > 0:
+            item_price = it.price
+
+        if it.variation_id:
+            variation = session.get(models.ProductVariation, it.variation_id)
+            if variation:
+                if it.price is None or it.price <= 0:
+                    item_price = variation.price
+                variation.stock = max(0, variation.stock - it.quantity)
+                session.add(variation)
+        else:
+            prod.stock = max(0, prod.stock - it.quantity)
+            session.add(prod)
+
+        receipt_item = models.ReceiptItem(
+            receipt_id=order.receipt_id,
+            product_id=it.product_id,
+            variation_id=it.variation_id,
+            quantity=it.quantity,
+            price_at_purchase=item_price
+        )
+        session.add(receipt_item)
+        total_price += item_price * it.quantity
+
+    order.total_price = total_price
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    return format_receipt(order, session)
+
 @app.put("/api/orders/{receipt_id}/status")
 def update_order_status(receipt_id: int, data: models.StatusUpdate, session: Session = Depends(database.get_session)):
     order = session.get(models.Receipt, receipt_id)

@@ -77,6 +77,25 @@ export const api = {
     return await res.json()
   },
 
+  async createOrder(orderData) {
+    const res = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    })
+    if (!res.ok) {
+      const err = await res.text()
+      throw new Error(`Ошибка создания заказа: ${err}`)
+    }
+    return await res.json()
+  },
+
+  async getOrder(receiptId) {
+    const res = await fetch(`${BASE_URL}/orders/${receiptId}`)
+    if (!res.ok) throw new Error('Заказ не найден')
+    return await res.json()
+  },
+
   async getOrders(userId) {
     const res = await fetch(`${BASE_URL}/orders/user/${userId}`)
     return await res.json()
