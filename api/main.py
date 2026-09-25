@@ -31,21 +31,80 @@ images_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images")
 os.makedirs(images_dir, exist_ok=True)
 app.mount("/images", StaticFiles(directory=images_dir), name="images")
 
+def get_or_create_manufacturer(name_or_id, session: Session) -> int:
+    if isinstance(name_or_id, int):
+        return name_or_id
+    if not name_or_id:
+        first = session.exec(select(models.Manufacturer)).first()
+        if first:
+            return first.id
+        mfg = models.Manufacturer(name="Unknown")
+        session.add(mfg)
+        session.commit()
+        session.refresh(mfg)
+        return mfg.id
+
+    name = str(name_or_id).strip()
+    mfg = session.exec(select(models.Manufacturer).where(models.Manufacturer.name.ilike(name))).first()
+    if not mfg:
+        mfg = models.Manufacturer(name=name)
+        session.add(mfg)
+        session.commit()
+        session.refresh(mfg)
+    return mfg.id
+
+def get_or_create_role(name_or_id, session: Session) -> int:
+    if isinstance(name_or_id, int):
+        return name_or_id
+    role_name = (name_or_id or "user").strip().lower()
+    role = session.exec(select(models.Role).where(models.Role.name == role_name)).first()
+    if not role:
+        role = models.Role(name=role_name)
+        session.add(role)
+        session.commit()
+        session.refresh(role)
+    return role.id
+
+def format_user_response(u: models.User, session: Session):
+    role = session.get(models.Role, u.role_id) if u.role_id else None
+    role_name = role.name if role else "user"
+    return {
+        "userId": u.user_id,
+        "role": role_name,
+        "roleId": u.role_id,
+        "name": u.name,
+        "phone": u.phone,
+        "email": u.email
+    }
+
 def format_product(p: models.Product, session: Session):
-    cat = session.get(models.Category, p.category)
+    cat = session.get(models.Category, p.category_id) if p.category_id else None
+    mfg = session.get(models.Manufacturer, p.manufacturer_id) if p.manufacturer_id else None
     variations = session.exec(
         select(models.ProductVariation).where(models.ProductVariation.product_id == p.articul)
     ).all()
 
+    reviews = session.exec(
+        select(models.Review).where(models.Review.articul == p.articul)
+    ).all()
+    rev_count = len(reviews)
+    avg_rating = round(sum(r.rating for r in reviews) / rev_count, 1) if rev_count > 0 else 5.0
+
     return {
         "articul": p.articul,
         "title": p.title,
-        "manufacturer": p.manufacturer,
-        "category": p.category,
+        "manufacturer": mfg.name if mfg else "",
+        "manufacturerId": p.manufacturer_id,
+        "manufacturerNavigation": {
+            "id": mfg.id,
+            "name": mfg.name
+        } if mfg else None,
+        "category": p.category_id,
+        "categoryId": p.category_id,
         "price": p.price,
         "stock": p.stock,
-        "rating": p.rating,
-        "reviewsCount": p.reviews_count,
+        "rating": avg_rating,
+        "reviewsCount": rev_count,
         "description": p.description,
         "photo": p.photo,
         "categoryNavigation": {
@@ -96,19 +155,11 @@ def format_receipt(r: models.Receipt, session: Session):
             "productVariation": var_data
         })
 
-    user = session.get(models.User, r.user_id)
-    user_data = None
-    if user:
-        user_data = {
-            "userId": user.user_id,
-            "role": user.role,
-            "name": user.name,
-            "phone": user.phone,
-            "email": user.email
-        }
+    user = session.get(models.User, r.user_id) if r.user_id else None
+    user_data = format_user_response(user, session) if user else None
 
-    status_obj = session.get(models.Status, r.status)
-    status_title = status_obj.title if status_obj else (r.status_title or "В обработке")
+    status_obj = session.get(models.Status, r.status_id) if r.status_id else None
+    status_title = status_obj.title if status_obj else "В обработке"
 
     return {
         "receiptId": r.receipt_id,
@@ -116,13 +167,14 @@ def format_receipt(r: models.Receipt, session: Session):
         "userId": r.user_id,
         "totalPrice": r.total_price,
         "dateTime": r.date_time,
-        "status": r.status,
+        "status": r.status_id,
+        "statusId": r.status_id,
         "statusTitle": status_title,
         "orderStatus": r.order_status,
         "address": r.address,
         "adress": r.address,
         "statusNavigation": {
-            "id": status_obj.id if status_obj else r.status,
+            "id": status_obj.id if status_obj else r.status_id,
             "title": status_title
         },
         "user": user_data,
@@ -133,6 +185,7 @@ def format_receipt(r: models.Receipt, session: Session):
 @app.get("/api/Products")
 def get_products(
     categoryId: Optional[int] = None,
+    manufacturerId: Optional[int] = None,
     brand: Optional[str] = None,
     search: Optional[str] = None,
     minPrice: Optional[float] = None,
@@ -142,9 +195,15 @@ def get_products(
 ):
     stmt = select(models.Product)
     if categoryId is not None:
-        stmt = stmt.where(models.Product.category == categoryId)
+        stmt = stmt.where(models.Product.category_id == categoryId)
+    if manufacturerId is not None:
+        stmt = stmt.where(models.Product.manufacturer_id == manufacturerId)
     if brand:
-        stmt = stmt.where(models.Product.manufacturer.ilike(f"%{brand}%"))
+        stmt = stmt.join(
+            models.Manufacturer,
+            models.Product.manufacturer_id == models.Manufacturer.id,
+            isouter=True
+        ).where(models.Manufacturer.name.ilike(f"%{brand}%"))
     if search:
         stmt = stmt.where(models.Product.title.ilike(f"%{search}%"))
     if minPrice is not None:
@@ -168,10 +227,18 @@ def get_product(articul: int, session: Session = Depends(database.get_session)):
 @app.post("/api/products")
 @app.post("/api/Products")
 def create_product(data: models.ProductCreate, session: Session = Depends(database.get_session)):
+    mfg_id = data.manufacturer_id
+    if not mfg_id and data.manufacturer:
+        mfg_id = get_or_create_manufacturer(data.manufacturer, session)
+    if not mfg_id:
+        mfg_id = get_or_create_manufacturer("Unknown", session)
+
+    cat_id = data.category_id or data.category or 1
+
     product = models.Product(
         title=data.title,
-        manufacturer=data.manufacturer,
-        category=data.category,
+        manufacturer_id=mfg_id,
+        category_id=cat_id,
         price=data.price,
         stock=data.stock,
         description=data.description or "",
@@ -191,10 +258,14 @@ def update_product(articul: int, data: models.ProductUpdate, session: Session = 
 
     if data.title is not None:
         product.title = data.title
-    if data.manufacturer is not None:
-        product.manufacturer = data.manufacturer
-    if data.category is not None:
-        product.category = data.category
+    if data.manufacturer_id is not None:
+        product.manufacturer_id = data.manufacturer_id
+    elif data.manufacturer is not None:
+        product.manufacturer_id = get_or_create_manufacturer(data.manufacturer, session)
+    if data.category_id is not None:
+        product.category_id = data.category_id
+    elif data.category is not None:
+        product.category_id = data.category
     if data.price is not None:
         product.price = data.price
     if data.stock is not None:
@@ -252,11 +323,33 @@ def delete_category(id: int, session: Session = Depends(database.get_session)):
     session.commit()
     return {"message": "Категория успешно удалена"}
 
+@app.get("/api/manufacturers")
+def get_manufacturers(session: Session = Depends(database.get_session)):
+    manufacturers = session.exec(select(models.Manufacturer)).all()
+    return [{"id": m.id, "name": m.name} for m in manufacturers]
+
+@app.post("/api/manufacturers")
+def create_manufacturer(data: models.ManufacturerCreate, session: Session = Depends(database.get_session)):
+    existing = session.exec(
+        select(models.Manufacturer).where(models.Manufacturer.name.ilike(data.name.strip()))
+    ).first()
+    if existing:
+        return {"id": existing.id, "name": existing.name}
+    mfg = models.Manufacturer(name=data.name.strip())
+    session.add(mfg)
+    session.commit()
+    session.refresh(mfg)
+    return {"id": mfg.id, "name": mfg.name}
+
 @app.get("/api/brands")
 def get_brands(session: Session = Depends(database.get_session)):
-    products = session.exec(select(models.Product.manufacturer)).all()
-    brands = sorted(list({p for p in products if p}))
-    return brands
+    manufacturers = session.exec(select(models.Manufacturer.name)).all()
+    return sorted(list({m for m in manufacturers if m}))
+
+@app.get("/api/roles")
+def get_roles(session: Session = Depends(database.get_session)):
+    roles = session.exec(select(models.Role)).all()
+    return [{"id": r.id, "name": r.name} for r in roles]
 
 @app.get("/api/products/{articul}/variations")
 @app.get("/api/Products/{articul}/variations")
@@ -328,16 +421,23 @@ def get_reviews(articul: int, session: Session = Depends(database.get_session)):
     reviews = session.exec(
         select(models.Review).where(models.Review.articul == articul).order_by(models.Review.id.desc())
     ).all()
-    return [
-        {
+    res = []
+    for r in reviews:
+        name = r.user_name
+        if not name and r.user_id:
+            u = session.get(models.User, r.user_id)
+            if u:
+                name = u.name
+        res.append({
             "id": r.id,
             "articul": r.articul,
-            "userName": r.user_name,
+            "userId": r.user_id,
+            "userName": name or "Покупатель",
             "rating": r.rating,
             "date": r.date,
             "comment": r.comment
-        } for r in reviews
-    ]
+        })
+    return res
 
 @app.post("/api/products/{articul}/reviews")
 def add_review(articul: int, data: models.ReviewCreate, session: Session = Depends(database.get_session)):
@@ -345,29 +445,38 @@ def add_review(articul: int, data: models.ReviewCreate, session: Session = Depen
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
+    user_name = (data.user_name or "").strip()
+    user_id = data.user_id
+
+    if user_id:
+        user = session.get(models.User, user_id)
+        if user and not user_name:
+            user_name = user.name
+    elif user_name:
+        user = session.exec(select(models.User).where(models.User.name == user_name)).first()
+        if user:
+            user_id = user.user_id
+
+    if not user_name:
+        user_name = "Покупатель"
+
     now_str = datetime.now().strftime("%d.%m.%Y")
     review = models.Review(
         articul=articul,
-        user_name=data.user_name,
+        user_id=user_id,
+        user_name=user_name,
         rating=data.rating,
         date=now_str,
         comment=data.comment
     )
     session.add(review)
-
-    all_reviews = session.exec(select(models.Review).where(models.Review.articul == articul)).all()
-    new_count = len(all_reviews) + 1
-    total_rating = sum(r.rating for r in all_reviews) + data.rating
-    product.rating = round(total_rating / new_count, 1)
-    product.reviews_count = new_count
-
-    session.add(product)
     session.commit()
     session.refresh(review)
 
     return {
         "id": review.id,
         "articul": review.articul,
+        "userId": review.user_id,
         "userName": review.user_name,
         "rating": review.rating,
         "date": review.date,
@@ -385,8 +494,10 @@ def register(data: models.RegisterRequest, session: Session = Depends(database.g
     if existing:
         raise HTTPException(status_code=400, detail="Пользователь с таким email или телефоном уже существует")
 
+    role_id = data.role_id or get_or_create_role(data.role, session)
+
     user = models.User(
-        role=data.role or "user",
+        role_id=role_id,
         name=data.name,
         phone=data.phone,
         email=data.email,
@@ -401,21 +512,14 @@ def register(data: models.RegisterRequest, session: Session = Depends(database.g
         user_id=user.user_id,
         total_price=0,
         date_time=datetime.now().isoformat(),
-        status=1,
-        status_title="В обработке",
+        status_id=1,
         order_status=0,
         address=""
     )
     session.add(cart)
     session.commit()
 
-    return {
-        "userId": user.user_id,
-        "role": user.role,
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email
-    }
+    return format_user_response(user, session)
 
 @app.post("/api/auth/login")
 @app.post("/api/Users/login")
@@ -449,13 +553,7 @@ async def login(
     if not user:
         raise HTTPException(status_code=401, detail="Неверный email или пароль")
 
-    return {
-        "userId": user.user_id,
-        "role": user.role,
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email
-    }
+    return format_user_response(user, session)
 
 @app.get("/api/users/{id}")
 @app.get("/api/Users/{id}")
@@ -463,13 +561,7 @@ def get_user(id: int, session: Session = Depends(database.get_session)):
     user = session.get(models.User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    return {
-        "userId": user.user_id,
-        "role": user.role,
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email
-    }
+    return format_user_response(user, session)
 
 @app.put("/api/users/{id}")
 @app.put("/api/Users/{id}")
@@ -486,32 +578,22 @@ def update_user(id: int, data: models.UserUpdate, session: Session = Depends(dat
         user.email = data.email
     if data.password is not None:
         user.password = data.password
+    if data.role_id is not None:
+        user.role_id = data.role_id
+    elif data.role is not None:
+        user.role_id = get_or_create_role(data.role, session)
 
     session.add(user)
     session.commit()
     session.refresh(user)
 
-    return {
-        "userId": user.user_id,
-        "role": user.role,
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email
-    }
+    return format_user_response(user, session)
 
 @app.get("/api/users")
 @app.get("/api/Users")
 def get_users(session: Session = Depends(database.get_session)):
     users = session.exec(select(models.User)).all()
-    return [
-        {
-            "userId": u.user_id,
-            "role": u.role,
-            "name": u.name,
-            "phone": u.phone,
-            "email": u.email
-        } for u in users
-    ]
+    return [format_user_response(u, session) for u in users]
 
 @app.get("/api/cart/{user_id}")
 def get_cart(user_id: int, session: Session = Depends(database.get_session)):
@@ -528,8 +610,7 @@ def get_cart(user_id: int, session: Session = Depends(database.get_session)):
             user_id=user_id,
             total_price=0,
             date_time=datetime.now().isoformat(),
-            status=1,
-            status_title="В обработке",
+            status_id=1,
             order_status=0,
             address=""
         )
@@ -664,8 +745,7 @@ def checkout_cart(receipt_id: int, data: models.CheckoutRequest, session: Sessio
 
     cart.total_price = total
     cart.order_status = 1
-    cart.status = 2
-    cart.status_title = "Создан и оплачен"
+    cart.status_id = 2
     cart.date_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     cart.address = data.address or ""
     cart.code = f"#{cart.receipt_id:05d}"
@@ -677,8 +757,7 @@ def checkout_cart(receipt_id: int, data: models.CheckoutRequest, session: Sessio
         user_id=cart.user_id,
         total_price=0,
         date_time=datetime.now().isoformat(),
-        status=1,
-        status_title="В обработке",
+        status_id=1,
         order_status=0,
         address=""
     )
@@ -723,8 +802,7 @@ def update_order_status(receipt_id: int, data: models.StatusUpdate, session: Ses
     if not status:
         raise HTTPException(status_code=404, detail="Статус не найден")
 
-    order.status = status.id
-    order.status_title = status.title
+    order.status_id = status.id
     session.add(order)
     session.commit()
     return {"message": "Статус заказа обновлен", "statusTitle": status.title}
@@ -740,9 +818,7 @@ def update_order_status_direct(
         raise HTTPException(status_code=404, detail="Заказ не найден")
 
     status = session.get(models.Status, status_id)
-    order.status = status_id
-    if status:
-        order.status_title = status.title
+    order.status_id = status_id
     session.add(order)
     session.commit()
     return {"message": "Статус заказа успешно обновлен"}
