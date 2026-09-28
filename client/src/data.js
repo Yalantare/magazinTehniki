@@ -15,8 +15,6 @@ export const products = [
     category: 4,
     price: 40000,
     stock: 0,
-    rating: 4.8,
-    reviewsCount: 12,
     description: 'Умные часы AppleWatch 16 с передовыми датчиками для заботы о здоровье, ярким OLED Always-On дисплеем и прочным корпусом для любых тренировок.',
     photo: '/images/apple_watch.jpeg',
     categoryNavigation: { id: 4, title: 'Часы' }
@@ -28,8 +26,6 @@ export const products = [
     category: 2,
     price: 249999,
     stock: 5,
-    rating: 5.0,
-    reviewsCount: 18,
     description: 'Ноутбук Apple MacBook Pro 16 с потрясающим дисплеем Liquid Retina XDR, высокой производительностью процессоров Apple M-серии и непревзойденным временем автономной работы.',
     photo: '/images/7302914176.jpg',
     categoryNavigation: { id: 2, title: 'Ноутбуки' }
@@ -41,8 +37,6 @@ export const products = [
     category: 1,
     price: 24990,
     stock: 30,
-    rating: 4.9,
-    reviewsCount: 26,
     description: 'Беспроводные наушники AirPods Pro 3 с передовым активным шумоподавлением, режимом адаптивной прозрачности и персонализированным пространственным звуком.',
     photo: '/images/s-l1600.jpg',
     categoryNavigation: { id: 1, title: 'Наушники' }
@@ -54,8 +48,6 @@ export const products = [
     category: 3,
     price: 129990,
     stock: 8,
-    rating: 4.9,
-    reviewsCount: 35,
     description: 'Корпус из авиационного титана, мощнейший процессор A17 Pro, настраиваемая кнопка действия Action Button и универсальный порт USB-C для максимальной скорости передачи данных.',
     photo: '/images/iphone_15_pro.jpg',
     categoryNavigation: { id: 3, title: 'Телефон' },
@@ -72,8 +64,6 @@ export const products = [
     category: 3,
     price: 75000,
     stock: 3,
-    rating: 4.9,
-    reviewsCount: 21,
     description: 'Флагманский смартфон Xiaomi Ultra 17 с профессиональной оптикой Leica, ультрачетким AMOLED-дисплеем и молниеносной зарядкой.',
     photo: '/images/iauk5enkbbqmdfijupnwve25fan6hpdz.jpg',
     categoryNavigation: { id: 3, title: 'Телефон' },
@@ -89,8 +79,6 @@ export const products = [
     category: 3,
     price: 119990,
     stock: 10,
-    rating: 4.8,
-    reviewsCount: 19,
     description: 'Инновационный смартфон со встроенным пером S Pen, интеллектуальными возможностями Galaxy, титановым корпусом и камерой 200 Мп с непревзойденным ночным зумом.',
     photo: '/images/l9mlom3hkqe3dl1mwpjkdamxyzar55y4.jpg',
     categoryNavigation: { id: 3, title: 'Телефон' }
@@ -102,8 +90,6 @@ export const products = [
     category: 1,
     price: 14990,
     stock: 12,
-    rating: 4.7,
-    reviewsCount: 14,
     description: 'Наушники премиального уровня с двумя излучателями высокого разрешения, кристально чистой передачей голоса и интеллектуальным ANC.',
     photo: '/images/edbd519128c26b1de9ba7b3cdfd827e8.jpg',
     categoryNavigation: { id: 1, title: 'Наушники' }
@@ -115,88 +101,14 @@ export const products = [
     category: 4,
     price: 19990,
     stock: 7,
-    rating: 4.8,
-    reviewsCount: 16,
     description: 'Элегантные часы в геометрическом дизайне с автономностью до 14 дней, круглосуточным контролем здоровья и совместимостью со всеми ОС.',
     photo: '/images/AA1T0iYZ.jfif',
     categoryNavigation: { id: 4, title: 'Часы' }
   }
 ]
 
-export const reviews = {
-  5: [
-    {
-      id: 'rev-5-1',
-      articul: 5,
-      userName: 'Алексей С.',
-      rating: 5,
-      date: '02.09.2026',
-      comment: 'Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне. Батарею держит полтора дня стабильно.'
-    },
-    {
-      id: 'rev-5-2',
-      articul: 5,
-      userName: 'Марина К.',
-      rating: 5,
-      date: '28.08.2026',
-      comment: 'Очень красивый изумрудный цвет корпуса. Быстрая зарядка заряжает до 100% за какие-то 25 минут!'
-    },
-    {
-      id: 'rev-5-3',
-      articul: 5,
-      userName: 'Денис В.',
-      rating: 4,
-      date: '15.08.2026',
-      comment: 'Смартфон топовый, экран 120 Гц суперплавный. Из минусов: блок камер ощутимо выступает, лучше сразу брать чехол.'
-    }
-  ],
-  4: [
-    {
-      id: 'rev-4-1',
-      articul: 4,
-      userName: 'Артур Г.',
-      rating: 5,
-      date: '04.09.2026',
-      comment: 'Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом и ноутбук, и телефон.'
-    },
-    {
-      id: 'rev-4-2',
-      articul: 4,
-      userName: 'Елена М.',
-      rating: 5,
-      date: '20.08.2026',
-      comment: 'Камера с 5х зумом творит чудеса. Производительность в играх и тяжелых приложениях космическая.'
-    }
-  ],
-  3: [
-    {
-      id: 'rev-3-1',
-      articul: 3,
-      userName: 'Сергей Т.',
-      rating: 5,
-      date: '05.09.2026',
-      comment: 'Шумоподавление лучше, чем во второй версии. В метро тишина полная, звук насыщенный с глубокими басами.'
-    },
-    {
-      id: 'rev-3-2',
-      articul: 3,
-      userName: 'Ольга Р.',
-      rating: 5,
-      date: '01.09.2026',
-      comment: 'Сидят идеально, не выпадают даже на пробежках. Автономность отличная.'
-    }
-  ],
-  2: [
-    {
-      id: 'rev-2-1',
-      articul: 2,
-      userName: 'Владимир П.',
-      rating: 5,
-      date: '03.09.2026',
-      comment: 'Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов. Дисплей 120 Гц XDR просто сказка.'
-    }
-  ]
-}
+export const reviews = {}
+
 
 export const user = {
   userId: 3,
