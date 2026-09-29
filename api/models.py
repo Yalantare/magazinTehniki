@@ -35,6 +35,17 @@ class User(SQLModel, table=True):
     password: str
     email: str = Field(unique=True, index=True)
 
+    @property
+    def role(self) -> str:
+        return "admin" if self.role_id == 2 else "user"
+
+    @role.setter
+    def role(self, val: str):
+        if str(val).lower() == "admin":
+            self.role_id = 2
+        else:
+            self.role_id = 1
+
 class Product(SQLModel, table=True):
     __tablename__ = "products"
 
@@ -54,6 +65,14 @@ class Product(SQLModel, table=True):
     @category.setter
     def category(self, val: int):
         self.category_id = val
+
+    @property
+    def manufacturer(self) -> str:
+        return ""
+
+    @manufacturer.setter
+    def manufacturer(self, val):
+        pass
 
 class ProductVariation(SQLModel, table=True):
     __tablename__ = "product_variations"
