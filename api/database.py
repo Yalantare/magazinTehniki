@@ -75,7 +75,18 @@ def _sync_product_images():
 def _seed_initial_data(session: Session, models_module):
     """Наполняет базу данных начальными данными, если таблицы пусты."""
     try:
-        # 1. Статусы заказов
+        # 1. Роли пользователей
+        roles = session.exec(select(models_module.Role)).all()
+        if not roles:
+            initial_roles = [
+                models_module.Role(id=1, name="user"),
+                models_module.Role(id=2, name="admin"),
+            ]
+            session.add_all(initial_roles)
+            session.commit()
+            print("[DB] Начальные роли пользователей успешно добавлены.")
+
+        # 2. Статусы заказов
         statuses = session.exec(select(models_module.Status)).all()
         if not statuses:
             initial_statuses = [
@@ -89,7 +100,7 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Начальные статусы заказов успешно добавлены.")
 
-        # 2. Категории товаров
+        # 3. Категории товаров
         categories = session.exec(select(models_module.Category)).all()
         if not categories:
             initial_categories = [
@@ -102,14 +113,27 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Начальные категории успешно добавлены.")
 
-        # 3. Пользователи (Администратор и демо-клиент)
+        # 4. Производители (бренды)
+        manufacturers = session.exec(select(models_module.Manufacturer)).all()
+        if not manufacturers:
+            initial_manufacturers = [
+                models_module.Manufacturer(id=1, name="Apple"),
+                models_module.Manufacturer(id=2, name="Xiaomi"),
+                models_module.Manufacturer(id=3, name="Samsung"),
+                models_module.Manufacturer(id=4, name="Huawei"),
+            ]
+            session.add_all(initial_manufacturers)
+            session.commit()
+            print("[DB] Начальные производители успешно добавлены.")
+
+        # 5. Пользователи
         admin_user = session.exec(
             select(models_module.User).where(models_module.User.email == "admin@shop.ru")
         ).first()
         if not admin_user:
             admin_user = models_module.User(
                 user_id=1,
-                role="admin",
+                role_id=2,
                 name="Администратор",
                 phone="+79990000000",
                 password="admin",
@@ -125,7 +149,7 @@ def _seed_initial_data(session: Session, models_module):
         if not demo_user:
             demo_user = models_module.User(
                 user_id=2,
-                role="user",
+                role_id=1,
                 name="Рафаэль Хайруллин",
                 phone="79174948936",
                 password="password123",
@@ -135,103 +159,107 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Создан тестовый пользователь (hayrullinrafael2@gmail.com / password123).")
 
-        # 4. Товары и вариации
+        # Дополнительные пользователи для отзывов
+        review_authors = [
+            (4, "Алексей С.", "aleksey@shop.ru"),
+            (5, "Артур Г.", "artur@shop.ru"),
+            (6, "Сергей Т.", "sergey@shop.ru"),
+            (7, "Владимир П.", "vladimir@shop.ru"),
+        ]
+        for uid, uname, uemail in review_authors:
+            existing_u = session.get(models_module.User, uid)
+            if not existing_u:
+                session.add(models_module.User(
+                    user_id=uid,
+                    role_id=1,
+                    name=uname,
+                    phone="+7999000000" + str(uid),
+                    password="guest",
+                    email=uemail
+                ))
+        session.commit()
+
+        # 6. Товары и вариации
         products = session.exec(select(models_module.Product)).all()
         if not products:
             initial_products = [
                 models_module.Product(
                     articul=1,
                     title="AppleWatch 16",
-                    manufacturer="Apple",
-                    category=4,
+                    manufacturer_id=1,
+                    category_id=4,
                     price=40000.0,
                     stock=5,
-                    rating=4.8,
-                    reviews_count=12,
                     description="Умные часы AppleWatch 16 с передовыми датчиками для заботы о здоровье, ярким OLED Always-On дисплеем и прочным корпусом для любых тренировок.",
                     photo="/images/apple_watch.jpeg"
                 ),
                 models_module.Product(
                     articul=2,
                     title="MacBook Pro 16",
-                    manufacturer="Apple",
-                    category=2,
+                    manufacturer_id=1,
+                    category_id=2,
                     price=249999.0,
                     stock=5,
-                    rating=5.0,
-                    reviews_count=18,
                     description="Ноутбук Apple MacBook Pro 16 с потрясающим дисплеем Liquid Retina XDR, высокой производительностью процессоров Apple M-серии и непревзойденным временем автономной работы.",
                     photo="/images/7302914176.jpg"
                 ),
                 models_module.Product(
                     articul=3,
                     title="AirPods Pro 3",
-                    manufacturer="Apple",
-                    category=1,
+                    manufacturer_id=1,
+                    category_id=1,
                     price=24990.0,
                     stock=30,
-                    rating=4.9,
-                    reviews_count=26,
                     description="Беспроводные наушники AirPods Pro 3 с передовым активным шумоподавлением, режимом адаптивной прозрачности и персонализированным пространственным звуком.",
                     photo="/images/s-l1600.jpg"
                 ),
                 models_module.Product(
                     articul=4,
                     title="iPhone 15 Pro",
-                    manufacturer="Apple",
-                    category=3,
+                    manufacturer_id=1,
+                    category_id=3,
                     price=129990.0,
                     stock=8,
-                    rating=4.9,
-                    reviews_count=35,
                     description="Корпус из авиационного титана, мощнейший процессор A17 Pro, настраиваемая кнопка действия Action Button и универсальный порт USB-C для максимальной скорости передачи данных.",
                     photo="/images/iphone_15_pro.jpg"
                 ),
                 models_module.Product(
                     articul=5,
                     title="Xiaomi Ultra 17",
-                    manufacturer="Xiaomi",
-                    category=3,
+                    manufacturer_id=2,
+                    category_id=3,
                     price=75000.0,
                     stock=3,
-                    rating=4.9,
-                    reviews_count=21,
                     description="Флагманский смартфон Xiaomi Ultra 17 с профессиональной оптикой Leica, ультрачетким AMOLED-дисплеем и молниеносной зарядкой.",
                     photo="/images/iauk5enkbbqmdfijupnwve25fan6hpdz.jpg"
                 ),
                 models_module.Product(
                     articul=6,
                     title="Samsung Galaxy S24 Ultra",
-                    manufacturer="Samsung",
-                    category=3,
+                    manufacturer_id=3,
+                    category_id=3,
                     price=119990.0,
                     stock=10,
-                    rating=4.8,
-                    reviews_count=19,
                     description="Инновационный смартфон со встроенным пером S Pen, интеллектуальными возможностями Galaxy, титановым корпусом и камерой 200 Мп с непревзойденным ночным зумом.",
                     photo="/images/l9mlom3hkqe3dl1mwpjkdamxyzar55y4.jpg"
                 ),
                 models_module.Product(
                     articul=7,
                     title="Huawei FreeBuds Pro 3",
-                    manufacturer="Huawei",
-                    category=1,
+                    manufacturer_id=4,
+                    category_id=1,
                     price=14990.0,
                     stock=12,
-                    rating=4.7,
-                    reviews_count=14,
                     description="Наушники премиального уровня с двумя излучателями высокого разрешения, кристально чистой передачей голоса и интеллектуальным ANC.",
                     photo="/images/edbd519128c26b1de9ba7b3cdfd827e8.jpg"
                 ),
                 models_module.Product(
                     articul=8,
                     title="Huawei Watch GT 4",
-                    manufacturer="Huawei",
-                    category=4,
+                    manufacturer_id=4,
+                    category_id=4,
                     price=19990.0,
                     stock=7,
-                    rating=4.8,
-                    reviews_count=16,
                     description="Элегантные часы в геометрическом дизайне с автономностью до 14 дней, круглосуточным контролем здоровья и совместимостью со всеми ОС.",
                     photo="/images/AA1T0iYZ.jfif"
                 ),
@@ -250,14 +278,14 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Начальные товары и вариации успешно добавлены.")
 
-        # 5. Отзывы
+        # 7. Отзывы
         reviews = session.exec(select(models_module.Review)).all()
         if not reviews:
             initial_reviews = [
-                models_module.Review(articul=5, user_name="Алексей С.", rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
-                models_module.Review(articul=4, user_name="Артур Г.", rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
-                models_module.Review(articul=3, user_name="Сергей Т.", rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
-                models_module.Review(articul=2, user_name="Владимир П.", rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
+                models_module.Review(product_id=5, user_id=4, rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
+                models_module.Review(product_id=4, user_id=5, rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
+                models_module.Review(product_id=3, user_id=6, rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
+                models_module.Review(product_id=2, user_id=7, rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
             ]
             session.add_all(initial_reviews)
             session.commit()

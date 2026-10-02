@@ -165,8 +165,11 @@
               <input
                 v-model="authorName"
                 type="text"
+                maxlength="50"
                 placeholder="Как к вам обращаться?"
                 class="form-input"
+                @keydown="handleSpaceKeydown($event, authorName, 2)"
+                @input="authorName = sanitizeName($event.target.value, 2, 50)"
               />
             </div>
 
@@ -175,9 +178,12 @@
               <textarea
                 v-model="commentText"
                 rows="4"
+                maxlength="500"
                 placeholder="Поделитесь вашими впечатлениями от использования..."
                 class="form-textarea"
                 required
+                @keydown="handleSpaceKeydown($event, commentText, 100)"
+                @input="commentText = commentText.replace(/\s{3,}/g, '  ').slice(0, 500)"
               />
             </div>
 
@@ -240,6 +246,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Check, Star, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
+import { handleSpaceKeydown, sanitizeName } from '../utils/validators.js'
 
 const route = useRoute()
 const router = useRouter()

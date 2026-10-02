@@ -85,7 +85,7 @@ def format_product(p: models.Product, session: Session):
     ).all()
 
     reviews = session.exec(
-        select(models.Review).where(models.Review.articul == p.articul)
+        select(models.Review).where(models.Review.product_id == p.articul)
     ).all()
     rev_count = len(reviews)
     avg_rating = round(sum(r.rating for r in reviews) / rev_count, 1) if rev_count > 0 else 5.0
@@ -419,20 +419,18 @@ def delete_variation(id: int, session: Session = Depends(database.get_session)):
 @app.get("/api/products/{articul}/reviews")
 def get_reviews(articul: int, session: Session = Depends(database.get_session)):
     reviews = session.exec(
-        select(models.Review).where(models.Review.articul == articul).order_by(models.Review.id.desc())
+        select(models.Review).where(models.Review.product_id == articul).order_by(models.Review.id.desc())
     ).all()
     res = []
     for r in reviews:
-        name = r.user_name
-        if not name and r.user_id:
-            u = session.get(models.User, r.user_id)
-            if u:
-                name = u.name
+        user = session.get(models.User, r.user_id) if r.user_id else None
+        name = user.name if user else "Покупатель"
         res.append({
             "id": r.id,
-            "articul": r.articul,
+            "articul": r.product_id,
+            "productId": r.product_id,
             "userId": r.user_id,
-            "userName": name or "Покупатель",
+            "userName": name,
             "rating": r.rating,
             "date": r.date,
             "comment": r.comment
@@ -457,14 +455,24 @@ def add_review(articul: int, data: models.ReviewCreate, session: Session = Depen
         if user:
             user_id = user.user_id
 
-    if not user_name:
-        user_name = "Покупатель"
+    if not user_id:
+        if user_name and user_name != "Покупатель":
+            safe_email = f"user_{int(datetime.now().timestamp())}@shop.ru"
+            user = models.User(name=user_name, phone="", email=safe_email, password="guest", role_id=1)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            user_id = user.user_id
+        else:
+            first_user = session.exec(select(models.User)).first()
+            user_id = first_user.user_id if first_user else 1
+            if not user_name:
+                user_name = first_user.name if first_user else "Покупатель"
 
     now_str = datetime.now().strftime("%d.%m.%Y")
     review = models.Review(
-        articul=articul,
+        product_id=articul,
         user_id=user_id,
-        user_name=user_name,
         rating=data.rating,
         date=now_str,
         comment=data.comment
@@ -475,9 +483,10 @@ def add_review(articul: int, data: models.ReviewCreate, session: Session = Depen
 
     return {
         "id": review.id,
-        "articul": review.articul,
+        "articul": review.product_id,
+        "productId": review.product_id,
         "userId": review.user_id,
-        "userName": review.user_name,
+        "userName": user_name,
         "rating": review.rating,
         "date": review.date,
         "comment": review.comment
@@ -486,6 +495,11 @@ def add_review(articul: int, data: models.ReviewCreate, session: Session = Depen
 @app.post("/api/auth/register")
 @app.post("/api/Users/register")
 def register(data: models.RegisterRequest, session: Session = Depends(database.get_session)):
+    if not data.password or " " in data.password or len(data.password) > 32:
+        raise HTTPException(status_code=400, detail="Пароль не должен содержать пробелы и не может быть длиннее 32 символов")
+    if not data.email or " " in data.email:
+        raise HTTPException(status_code=400, detail="Email не должен содержать пробелы")
+
     existing = session.exec(
         select(models.User).where(
             (models.User.email == data.email) | (models.User.phone == data.phone)
@@ -498,9 +512,9 @@ def register(data: models.RegisterRequest, session: Session = Depends(database.g
 
     user = models.User(
         role_id=role_id,
-        name=data.name,
-        phone=data.phone,
-        email=data.email,
+        name=data.name.strip(),
+        phone=data.phone.strip(),
+        email=data.email.strip(),
         password=data.password
     )
     session.add(user)
@@ -544,14 +558,19 @@ async def login(
     if not req_email or not req_password:
         raise HTTPException(status_code=400, detail="Введите email и пароль")
 
+    clean_phone = "".join(ch for ch in req_email if ch.isdigit())
+    phone_filter = (models.User.phone == req_email)
+    if clean_phone:
+        phone_filter = phone_filter | (models.User.phone == clean_phone) | (models.User.phone == f"+{clean_phone}")
+
     user = session.exec(
         select(models.User).where(
-            models.User.email == req_email,
+            (models.User.email == req_email) | phone_filter,
             models.User.password == req_password
         )
     ).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Неверный email или пароль")
+        raise HTTPException(status_code=401, detail="Неверный email/телефон или пароль")
 
     return format_user_response(user, session)
 
@@ -570,14 +589,19 @@ def update_user(id: int, data: models.UserUpdate, session: Session = Depends(dat
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-    if data.name is not None:
-        user.name = data.name
-    if data.phone is not None:
-        user.phone = data.phone
-    if data.email is not None:
-        user.email = data.email
     if data.password is not None:
+        if " " in data.password or len(data.password) > 32 or len(data.password) < 4:
+            raise HTTPException(status_code=400, detail="Пароль не должен содержать пробелы и должен быть от 4 до 32 символов")
         user.password = data.password
+
+    if data.name is not None:
+        user.name = data.name.strip()
+    if data.phone is not None:
+        user.phone = data.phone.strip()
+    if data.email is not None:
+        if " " in data.email:
+            raise HTTPException(status_code=400, detail="Email не должен содержать пробелы")
+        user.email = data.email.strip()
     if data.role_id is not None:
         user.role_id = data.role_id
     elif data.role is not None:
@@ -813,7 +837,7 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
             phone=data.phone or "",
             email=email,
             password="guest",
-            role="user"
+            role_id=1
         )
         session.add(user)
         session.commit()
@@ -825,8 +849,7 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
         user_id=user.user_id,
         total_price=0.0,
         date_time=now_str,
-        status=1,
-        status_title="В обработке",
+        status_id=1,
         order_status=1,
         address=data.address or ""
     )

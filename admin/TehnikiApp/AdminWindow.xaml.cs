@@ -48,6 +48,7 @@ namespace TehnikiApp
                 ModalCategoryCombo.ItemsSource = _categories;
             }
 
+            AttachInputValidation();
             LoadAllData();
         }
 
@@ -1110,6 +1111,167 @@ namespace TehnikiApp
             {
                 ThemeIconPath.Data = Geometry.Parse("M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z");
             }
+        }
+
+        private void AttachInputValidation()
+        {
+            // Название товара: макс 100 символов, макс 10 пробелов
+            if (ModalNameInput != null)
+            {
+                ModalNameInput.MaxLength = 100;
+                LimitSpaces(ModalNameInput, 10);
+            }
+
+            // Производитель: макс 50 символов, макс 3 пробела
+            if (ModalManufacturerInput != null)
+            {
+                ModalManufacturerInput.MaxLength = 50;
+                LimitSpaces(ModalManufacturerInput, 3);
+            }
+
+            // Цена товара: числовое поле, 0 пробелов, макс 10 символов
+            if (ModalPriceInput != null)
+            {
+                ModalPriceInput.MaxLength = 10;
+                NumericOnly(ModalPriceInput, allowDecimal: true);
+            }
+
+            // Количество: целое неотрицательное число, 0 пробелов, макс 6 символов
+            if (ModalStockInput != null)
+            {
+                ModalStockInput.MaxLength = 6;
+                NumericOnly(ModalStockInput, allowDecimal: false);
+            }
+
+            // Ссылка на изображение: 0 пробелов, макс 255 символов
+            if (ModalImageInput != null)
+            {
+                ModalImageInput.MaxLength = 255;
+                LimitSpaces(ModalImageInput, 0);
+            }
+
+            // Описание товара: макс 1000 символов
+            if (ModalDescInput != null)
+            {
+                ModalDescInput.MaxLength = 1000;
+            }
+
+            // Вариации
+            if (VarNameInput != null)
+            {
+                VarNameInput.MaxLength = 50;
+                LimitSpaces(VarNameInput, 5);
+            }
+            if (VarPriceInput != null)
+            {
+                VarPriceInput.MaxLength = 10;
+                NumericOnly(VarPriceInput, allowDecimal: true);
+            }
+            if (VarStockInput != null)
+            {
+                VarStockInput.MaxLength = 6;
+                NumericOnly(VarStockInput, allowDecimal: false);
+            }
+
+            // Поисковые поля
+            if (ProductSearchInput != null)
+            {
+                ProductSearchInput.MaxLength = 60;
+                LimitSpaces(ProductSearchInput, 5);
+            }
+            if (SalesSearchInput != null)
+            {
+                SalesSearchInput.MaxLength = 60;
+                LimitSpaces(SalesSearchInput, 5);
+            }
+            if (UserSearchInput != null)
+            {
+                UserSearchInput.MaxLength = 60;
+                LimitSpaces(UserSearchInput, 5);
+            }
+        }
+
+        private void LimitSpaces(TextBox textBox, int maxSpaces)
+        {
+            textBox.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Space)
+                {
+                    if (maxSpaces <= 0)
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    string text = textBox.Text ?? "";
+                    int pos = textBox.SelectionStart;
+                    if (pos == 0 || (pos > 0 && text[pos - 1] == ' '))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                    int currentSpaces = text.Count(c => c == ' ');
+                    if (currentSpaces >= maxSpaces)
+                    {
+                        e.Handled = true;
+                    }
+                }
+            };
+
+            textBox.TextChanged += (s, e) =>
+            {
+                if (textBox.Text == null) return;
+                string text = textBox.Text;
+                if (maxSpaces <= 0 && text.Contains(" "))
+                {
+                    int sel = textBox.SelectionStart;
+                    textBox.Text = text.Replace(" ", "");
+                    textBox.SelectionStart = Math.Min(sel, textBox.Text.Length);
+                }
+            };
+        }
+
+        private void NumericOnly(TextBox textBox, bool allowDecimal)
+        {
+            textBox.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Space) e.Handled = true;
+            };
+
+            textBox.PreviewTextInput += (s, e) =>
+            {
+                foreach (char c in e.Text)
+                {
+                    if (char.IsDigit(c)) continue;
+                    if (allowDecimal && (c == '.' || c == ',') && !textBox.Text.Contains('.') && !textBox.Text.Contains(','))
+                    {
+                        continue;
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            };
+
+            textBox.TextChanged += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(textBox.Text)) return;
+                string filtered = "";
+                bool hasDecimal = false;
+                foreach (char c in textBox.Text)
+                {
+                    if (char.IsDigit(c)) filtered += c;
+                    else if (allowDecimal && (c == '.' || c == ',') && !hasDecimal)
+                    {
+                        filtered += c;
+                        hasDecimal = true;
+                    }
+                }
+                if (filtered != textBox.Text)
+                {
+                    int sel = textBox.SelectionStart;
+                    textBox.Text = filtered;
+                    textBox.SelectionStart = Math.Min(sel, textBox.Text.Length);
+                }
+            };
         }
     }
 }

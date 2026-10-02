@@ -77,10 +77,40 @@ namespace TehnikiApp
 
         private void ApplyInputConstraints()
         {
-            foreach (var control in GetAllTextBoxes(MainRoot))
+            if (EmailLogin != null)
             {
-                InputMethod.SetIsInputMethodEnabled(control, false);
-                control.KeyDown += (s, e) => { if (e.Key == Key.Space) e.Handled = true; };
+                EmailLogin.MaxLength = 64;
+                EmailLogin.KeyDown += (s, e) => { if (e.Key == Key.Space) e.Handled = true; };
+                EmailLogin.TextChanged += (s, e) =>
+                {
+                    if (EmailLogin.Text != null && EmailLogin.Text.Contains(" "))
+                    {
+                        int sel = EmailLogin.SelectionStart;
+                        EmailLogin.Text = EmailLogin.Text.Replace(" ", "");
+                        EmailLogin.SelectionStart = Math.Min(sel, EmailLogin.Text.Length);
+                    }
+                };
+            }
+
+            if (PassLogin != null)
+            {
+                PassLogin.MaxLength = 32;
+                PassLogin.KeyDown += (s, e) => { if (e.Key == Key.Space) e.Handled = true; };
+            }
+
+            if (PassLoginTxt != null)
+            {
+                PassLoginTxt.MaxLength = 32;
+                PassLoginTxt.KeyDown += (s, e) => { if (e.Key == Key.Space) e.Handled = true; };
+                PassLoginTxt.TextChanged += (s, e) =>
+                {
+                    if (PassLoginTxt.Text != null && PassLoginTxt.Text.Contains(" "))
+                    {
+                        int sel = PassLoginTxt.SelectionStart;
+                        PassLoginTxt.Text = PassLoginTxt.Text.Replace(" ", "");
+                        PassLoginTxt.SelectionStart = Math.Min(sel, PassLoginTxt.Text.Length);
+                    }
+                };
             }
         }
 

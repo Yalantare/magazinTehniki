@@ -73,13 +73,20 @@
             </div>
 
             <form v-if="isEditing" @submit.prevent="saveProfile" class="edit-form">
+              <div v-if="profileError" class="error-notice">
+                {{ profileError }}
+              </div>
+
               <div class="form-group">
                 <label class="form-label">ФИО</label>
                 <input
                   v-model="editName"
                   type="text"
+                  maxlength="60"
                   class="form-input"
                   required
+                  @keydown="handleSpaceKeydown($event, editName, 2)"
+                  @input="editName = sanitizeName($event.target.value, 2, 60)"
                 />
               </div>
 
@@ -88,8 +95,12 @@
                 <input
                   v-model="editPhone"
                   type="tel"
+                  maxlength="18"
+                  placeholder="+7 (999) 000-00-00"
                   class="form-input"
                   required
+                  @keydown="handleSpaceKeydown($event, editPhone, 0)"
+                  @input="editPhone = formatPhone($event.target.value)"
                 />
               </div>
 
@@ -98,8 +109,12 @@
                 <input
                   v-model="editEmail"
                   type="email"
+                  maxlength="64"
+                  placeholder="user@example.com"
                   class="form-input"
                   required
+                  @keydown="handleSpaceKeydown($event, editEmail, 0)"
+                  @input="editEmail = sanitizeEmail($event.target.value, 64)"
                 />
               </div>
 
@@ -108,13 +123,16 @@
                 <input
                   v-model="editPassword"
                   type="text"
+                  maxlength="32"
                   class="form-input"
                   required
+                  @keydown="handleSpaceKeydown($event, editPassword, 0)"
+                  @input="editPassword = sanitizePassword($event.target.value, 32)"
                 />
               </div>
 
               <div class="edit-actions">
-                <button type="button" class="cancel-btn" @click="isEditing = false">
+                <button type="button" class="cancel-btn" @click="isEditing = false; profileError = ''">
                   Отмена
                 </button>
                 <button type="submit" class="save-btn">
@@ -212,6 +230,15 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
+import {
+  handleSpaceKeydown,
+  sanitizeEmail,
+  sanitizePassword,
+  sanitizeName,
+  formatPhone,
+  isValidPhone,
+  isValidEmail
+} from '../utils/validators.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -222,6 +249,7 @@ onMounted(async () => {
 
 const activeTab = ref(route.query.tab === 'history' ? 'history' : 'personal')
 const isEditing = ref(false)
+const profileError = ref('')
 
 const editName = ref('')
 const editPhone = ref('')
@@ -242,19 +270,43 @@ const totalSpent = computed(() => {
 })
 
 function startEdit() {
-  editName.value = store.user.name
-  editPhone.value = store.user.phone
-  editEmail.value = store.user.email || ''
-  editPassword.value = store.user.password || 'password123'
+  profileError.value = ''
+  editName.value = sanitizeName(store.user?.name || '', 2, 60)
+  editPhone.value = formatPhone(store.user?.phone || '')
+  editEmail.value = sanitizeEmail(store.user?.email || '', 64)
+  editPassword.value = sanitizePassword(store.user?.password || 'password123', 32)
   isEditing.value = true
 }
 
 function saveProfile() {
+  profileError.value = ''
+  const name = editName.value.trim()
+  const phone = editPhone.value.trim()
+  const email = editEmail.value.trim()
+  const pass = editPassword.value
+
+  if (!name || !phone || !email || !pass) {
+    profileError.value = 'Заполните все обязательные поля'
+    return
+  }
+  if (!isValidEmail(email)) {
+    profileError.value = 'Некорректный формат email'
+    return
+  }
+  if (!isValidPhone(phone)) {
+    profileError.value = 'Введите полный номер телефона (+7 (XXX) XXX-XX-XX)'
+    return
+  }
+  if (pass.length < 4 || pass.length > 32) {
+    profileError.value = 'Пароль должен содержать от 4 до 32 символов'
+    return
+  }
+
   store.updateUser({
-    name: editName.value,
-    phone: editPhone.value,
-    email: editEmail.value,
-    password: editPassword.value
+    name,
+    phone,
+    email,
+    password: pass
   })
   isEditing.value = false
 }

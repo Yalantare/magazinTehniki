@@ -36,8 +36,11 @@
             <input
               v-model="loginEmail"
               type="text"
+              maxlength="64"
               placeholder="user@example.com"
               class="input"
+              @keydown="handleSpaceKeydown($event, loginEmail, 0)"
+              @input="loginEmail = sanitizeEmail($event.target.value, 64)"
             />
           </div>
 
@@ -47,8 +50,11 @@
               <input
                 v-model="loginPass"
                 :type="showPassword ? 'text' : 'password'"
+                maxlength="32"
                 placeholder="Введите пароль"
                 class="input"
+                @keydown="handleSpaceKeydown($event, loginPass, 0)"
+                @input="loginPass = sanitizePassword($event.target.value, 32)"
               />
               <button
                 type="button"
@@ -62,31 +68,22 @@
           </div>
 
           <button type="submit" class="submit-btn">
-            Войти в аккаунт
+            Войти как клиент
           </button>
 
           <div class="divider-row">
             <span class="divider-line" />
-            <span class="divider-text">или быстрый доступ</span>
+            <span class="divider-text">или</span>
             <span class="divider-line" />
           </div>
 
-          <div class="demo-buttons">
-            <button
-              type="button"
-              class="demo-btn"
-              @click="loginDemo"
-            >
-              Войти как Клиент (демо)
-            </button>
-            <button
-              type="button"
-              class="guest-btn"
-              @click="loginGuest"
-            >
-              Продолжить как Гость
-            </button>
-          </div>
+          <button
+            type="button"
+            class="guest-btn"
+            @click="loginGuest"
+          >
+            Войти как гость
+          </button>
 
           <div class="footer-link">
             Нет учетной записи?
@@ -109,43 +106,55 @@
           </div>
 
           <div class="input-group">
-            <label class="label">Ваше имя *</label>
+            <label class="label">Ваше имя</label>
             <input
               v-model="regName"
               type="text"
+              maxlength="60"
               placeholder="Иван Иванов"
               class="input"
+              @keydown="handleSpaceKeydown($event, regName, 2)"
+              @input="regName = sanitizeName($event.target.value, 2, 60)"
             />
           </div>
 
           <div class="input-group">
-            <label class="label">Email *</label>
+            <label class="label">Email</label>
             <input
               v-model="regEmail"
               type="email"
+              maxlength="64"
               placeholder="ivanov@example.com"
               class="input"
+              @keydown="handleSpaceKeydown($event, regEmail, 0)"
+              @input="regEmail = sanitizeEmail($event.target.value, 64)"
             />
           </div>
 
           <div class="input-group">
-            <label class="label">Телефон *</label>
+            <label class="label">Телефон</label>
             <input
               v-model="regPhone"
               type="tel"
+              maxlength="18"
               placeholder="+7 (999) 000-00-00"
               class="input"
+              @keydown="handleSpaceKeydown($event, regPhone, 0)"
+              @input="regPhone = formatPhone($event.target.value)"
             />
           </div>
 
           <div class="input-group">
-            <label class="label">Пароль *</label>
+            <label class="label">Пароль</label>
             <div class="pass-wrapper">
               <input
                 v-model="regPass"
                 :type="showPassword ? 'text' : 'password'"
+                maxlength="32"
                 placeholder="Придумайте пароль"
                 class="input"
+                @keydown="handleSpaceKeydown($event, regPass, 0)"
+                @input="regPass = sanitizePassword($event.target.value, 32)"
               />
               <button
                 type="button"
@@ -195,14 +204,23 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { store } from '../store.js'
+import {
+  handleSpaceKeydown,
+  sanitizeEmail,
+  sanitizePassword,
+  sanitizeName,
+  formatPhone,
+  isValidPhone,
+  isValidEmail
+} from '../utils/validators.js'
 
 const router = useRouter()
 const isRegister = ref(false)
 const error = ref('')
 const showPassword = ref(false)
 
-const loginEmail = ref('hayrullinrafael2@gmail.com')
-const loginPass = ref('password123')
+const loginEmail = ref('')
+const loginPass = ref('')
 
 const regName = ref('')
 const regEmail = ref('')
@@ -211,17 +229,23 @@ const regPass = ref('')
 const agree = ref(false)
 
 async function submitLogin() {
-  if (!loginEmail.value || !loginPass.value) {
-    error.value = 'Заполните поля'
+  const email = loginEmail.value.trim()
+  const pass = loginPass.value
+
+  if (!email || !pass) {
+    error.value = 'Заполните email/телефон и пароль'
     return
   }
-  await store.login(loginEmail.value, loginPass.value)
-  router.push('/catalog')
-}
-
-async function loginDemo() {
-  await store.login('hayrullinrafael2@gmail.com', 'password123')
-  router.push('/catalog')
+  if (pass.length > 32) {
+    error.value = 'Длина пароля не может превышать 32 символа'
+    return
+  }
+  try {
+    await store.login(email, pass)
+    router.push('/catalog')
+  } catch (err) {
+    error.value = err.message || 'Ошибка входа'
+  }
 }
 
 function loginGuest() {
@@ -230,16 +254,37 @@ function loginGuest() {
 }
 
 async function submitRegister() {
-  if (!regName.value || !regEmail.value || !regPhone.value || !regPass.value) {
-    error.value = 'Заполните все поля'
+  const name = regName.value.trim()
+  const email = regEmail.value.trim()
+  const phone = regPhone.value.trim()
+  const pass = regPass.value
+
+  if (!name || !email || !phone || !pass) {
+    error.value = 'Заполните все обязательные поля'
+    return
+  }
+  if (!isValidEmail(email)) {
+    error.value = 'Некорректный формат email'
+    return
+  }
+  if (!isValidPhone(phone)) {
+    error.value = 'Введите полный номер телефона (+7 (XXX) XXX-XX-XX)'
+    return
+  }
+  if (pass.length < 4 || pass.length > 32) {
+    error.value = 'Пароль должен содержать от 4 до 32 символов'
     return
   }
   if (!agree.value) {
-    error.value = 'Подтвердите согласие'
+    error.value = 'Подтвердите согласие с условиями обработки данных'
     return
   }
-  await store.register(regName.value, regEmail.value, regPhone.value, regPass.value)
-  router.push('/catalog')
+  try {
+    await store.register(name, email, phone, pass)
+    router.push('/catalog')
+  } catch (err) {
+    error.value = err.message || 'Ошибка регистрации'
+  }
 }
 </script>
 
@@ -431,13 +476,7 @@ async function submitRegister() {
   letter-spacing: 0.5px;
 }
 
-.demo-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.demo-btn {
+.guest-btn {
   width: 100%;
   background-color: var(--theme-panel-bg);
   border: 1px solid var(--theme-border);
@@ -445,32 +484,15 @@ async function submitRegister() {
   padding: 12px;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-
-.demo-btn:hover {
-  background-color: var(--theme-textbox-bg);
-  border-color: var(--theme-border-light);
-}
-
-.guest-btn {
-  width: 100%;
-  background-color: transparent;
-  border: 1px dashed var(--theme-border-light);
-  color: var(--theme-text-secondary);
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .guest-btn:hover {
-  color: var(--theme-text-primary);
+  background-color: var(--theme-textbox-bg);
   border-color: var(--theme-accent);
+  color: var(--theme-accent);
 }
 
 .footer-link {
