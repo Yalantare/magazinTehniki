@@ -92,6 +92,15 @@ namespace TehnikiApp
                 if (receipts != null)
                 {
                     _allReceipts = receipts.Where(r => r.OrderStatus > 0).ToList(); 
+                    if (_allReceipts.Count > 0 && _analyticsPeriod == "All")
+                    {
+                        _analyticsStartDate = _allReceipts.Min(r => r.DateTime.Date);
+                        _analyticsEndDate = DateTime.Today;
+                        _isUpdatingAnalyticsDates = true;
+                        if (AnalyticsStartDatePicker != null) AnalyticsStartDatePicker.SelectedDate = _analyticsStartDate;
+                        if (AnalyticsEndDatePicker != null) AnalyticsEndDatePicker.SelectedDate = _analyticsEndDate;
+                        _isUpdatingAnalyticsDates = false;
+                    }
                     FilterSales();
                 }
             }
@@ -226,8 +235,203 @@ namespace TehnikiApp
 
                 if (tabName == "Analytics")
                 {
-                    UpdateAnalytics();
+                    if (_analyticsPeriod == "All" && _allReceipts.Count > 0)
+                    {
+                        SetAnalyticsPeriod("All");
+                    }
+                    else
+                    {
+                        UpdateAnalytics();
+                    }
                 }
+            }
+        }
+
+        // === Dynamic Analytics State ===
+        private string _analyticsPeriod = "All"; // "All", "Year", "Month", "30Days", "7Days", "Custom"
+        private DateTime _analyticsStartDate = DateTime.Today.AddMonths(-6);
+        private DateTime _analyticsEndDate = DateTime.Today;
+        private string _analyticsMetric = "Revenue"; // "Revenue", "Orders", "Units", "AvgCheck"
+        private string _analyticsChartType = "Area"; // "Area", "Bar"
+        private string _analyticsBreakdownTab = "Categories"; // "Categories", "Products"
+        private bool _isUpdatingAnalyticsDates = false;
+
+        private class ChartDataPoint
+        {
+            public DateTime Date { get; set; }
+            public DateTime EndDate { get; set; }
+            public string Label { get; set; } = "";
+            public string FullPeriodLabel { get; set; } = "";
+            public decimal Revenue { get; set; }
+            public int OrdersCount { get; set; }
+            public int UnitsSold { get; set; }
+            public decimal AvgCheck => OrdersCount > 0 ? Revenue / OrdersCount : 0;
+            public double Value { get; set; }
+            public double X { get; set; }
+            public double Y { get; set; }
+            public double BarWidth { get; set; }
+            public double BarHeight { get; set; }
+        }
+
+        private List<ChartDataPoint> _currentChartPoints = new List<ChartDataPoint>();
+        private Border? _chartHoverBadge = null;
+        private System.Windows.Shapes.Line? _chartHoverLine = null;
+        private System.Windows.Shapes.Ellipse? _chartHoverDot = null;
+
+        private static readonly Brush _activePeriodBrush = new SolidColorBrush(Color.FromRgb(37, 99, 235));
+
+        private void AnalyticsPeriod_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tag)
+            {
+                SetAnalyticsPeriod(tag);
+            }
+        }
+
+        private void SetAnalyticsPeriod(string periodTag)
+        {
+            _analyticsPeriod = periodTag;
+
+            var periodButtons = new[] { PeriodAllBtn, PeriodYearBtn, PeriodMonthBtn, Period30Btn, Period7Btn, PeriodCustomBtn };
+            var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+            foreach (var b in periodButtons)
+            {
+                if (b == null) continue;
+                bool isSelected = (string)b.Tag == periodTag;
+                b.Background = isSelected ? _activePeriodBrush : Brushes.Transparent;
+                b.Foreground = isSelected ? Brushes.White : inactiveTextBrush;
+            }
+
+            DateTime today = DateTime.Today;
+            DateTime start = today.AddDays(-6);
+            DateTime end = today;
+
+            switch (periodTag)
+            {
+                case "All":
+                    start = _allReceipts.Count > 0 ? _allReceipts.Min(r => r.DateTime.Date) : today.AddMonths(-6);
+                    end = today;
+                    break;
+                case "Year":
+                    start = new DateTime(today.Year, 1, 1);
+                    end = today;
+                    break;
+                case "Month":
+                    start = new DateTime(today.Year, today.Month, 1);
+                    end = today;
+                    break;
+                case "30Days":
+                    start = today.AddDays(-29);
+                    end = today;
+                    break;
+                case "7Days":
+                    start = today.AddDays(-6);
+                    end = today;
+                    break;
+                case "Custom":
+                    start = AnalyticsStartDatePicker?.SelectedDate ?? today.AddMonths(-1);
+                    end = AnalyticsEndDatePicker?.SelectedDate ?? today;
+                    break;
+            }
+
+            if (start > end) start = end;
+
+            _analyticsStartDate = start;
+            _analyticsEndDate = end;
+
+            _isUpdatingAnalyticsDates = true;
+            if (AnalyticsStartDatePicker != null) AnalyticsStartDatePicker.SelectedDate = start;
+            if (AnalyticsEndDatePicker != null) AnalyticsEndDatePicker.SelectedDate = end;
+            _isUpdatingAnalyticsDates = false;
+
+            UpdateAnalytics();
+        }
+
+        private void AnalyticsDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingAnalyticsDates) return;
+
+            DateTime start = AnalyticsStartDatePicker?.SelectedDate ?? DateTime.Today.AddMonths(-1);
+            DateTime end = AnalyticsEndDatePicker?.SelectedDate ?? DateTime.Today;
+
+            if (start > end) start = end;
+
+            _analyticsStartDate = start;
+            _analyticsEndDate = end;
+            _analyticsPeriod = "Custom";
+
+            var periodButtons = new[] { PeriodAllBtn, PeriodYearBtn, PeriodMonthBtn, Period30Btn, Period7Btn, PeriodCustomBtn };
+            var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+            foreach (var b in periodButtons)
+            {
+                if (b == null) continue;
+                bool isSelected = (string)b.Tag == "Custom";
+                b.Background = isSelected ? _activePeriodBrush : Brushes.Transparent;
+                b.Foreground = isSelected ? Brushes.White : inactiveTextBrush;
+            }
+
+            UpdateAnalytics();
+        }
+
+        private void AnalyticsMetricCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (AnalyticsMetricCombo?.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+            {
+                _analyticsMetric = tag;
+                DrawSalesChart();
+            }
+        }
+
+        private void AnalyticsChartType_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tag)
+            {
+                _analyticsChartType = tag;
+                var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+                if (ChartTypeAreaBtn != null)
+                {
+                    bool isArea = tag == "Area";
+                    ChartTypeAreaBtn.Background = isArea ? _activePeriodBrush : Brushes.Transparent;
+                    ChartTypeAreaBtn.Foreground = isArea ? Brushes.White : inactiveTextBrush;
+                }
+                if (ChartTypeBarBtn != null)
+                {
+                    bool isBar = tag == "Bar";
+                    ChartTypeBarBtn.Background = isBar ? _activePeriodBrush : Brushes.Transparent;
+                    ChartTypeBarBtn.Foreground = isBar ? Brushes.White : inactiveTextBrush;
+                }
+
+                DrawSalesChart();
+            }
+        }
+
+        private void BreakdownTab_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string tag)
+            {
+                _analyticsBreakdownTab = tag;
+                var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+                if (BreakdownTabCatsBtn != null)
+                {
+                    bool isCats = tag == "Categories";
+                    BreakdownTabCatsBtn.Background = isCats ? _activePeriodBrush : Brushes.Transparent;
+                    BreakdownTabCatsBtn.Foreground = isCats ? Brushes.White : inactiveTextBrush;
+                }
+                if (BreakdownTabProdsBtn != null)
+                {
+                    bool isProds = tag == "Products";
+                    BreakdownTabProdsBtn.Background = isProds ? _activePeriodBrush : Brushes.Transparent;
+                    BreakdownTabProdsBtn.Foreground = isProds ? Brushes.White : inactiveTextBrush;
+                }
+
+                if (CategoryStatsPanel != null)
+                    CategoryStatsPanel.Visibility = tag == "Categories" ? Visibility.Visible : Visibility.Collapsed;
+                if (TopProductsStatsPanel != null)
+                    TopProductsStatsPanel.Visibility = tag == "Products" ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -235,15 +439,35 @@ namespace TehnikiApp
         {
             if (_allReceipts == null || _allProducts == null || _categories == null) return;
 
-            decimal totalSales = _allReceipts.Sum(r => r.TotalPrice);
-            int totalOrders = _allReceipts.Count;
-            decimal avgCheck = totalOrders > 0 ? totalSales / totalOrders : 0;
-            CardAvgCheckTxt.Text = $"{avgCheck:N0}₽";
+            DateTime startDate = _analyticsStartDate.Date;
+            DateTime endDate = _analyticsEndDate.Date.AddDays(1).AddTicks(-1);
 
-            int totalItemsSold = _allReceipts.SelectMany(r => r.ReceiptItems).Sum(i => i.Quantity);
-            CardTotalUnitsSoldTxt.Text = $"{totalItemsSold:N0} шт";
+            var filteredReceipts = _allReceipts
+                .Where(r => r.DateTime >= startDate && r.DateTime <= endDate)
+                .ToList();
 
-            var categoryRevenue = _allReceipts.SelectMany(r => r.ReceiptItems)
+            decimal periodRevenue = filteredReceipts.Sum(r => r.TotalPrice);
+            int periodOrders = filteredReceipts.Count;
+            decimal avgCheck = periodOrders > 0 ? periodRevenue / periodOrders : 0;
+
+            var allItems = filteredReceipts.SelectMany(r => r.ReceiptItems).ToList();
+            int totalItemsSold = allItems.Sum(i => i.Quantity);
+            int uniqueItemsSold = allItems.Select(i => i.ProductId).Distinct().Count();
+
+            if (CardPeriodRevenueTxt != null)
+                CardPeriodRevenueTxt.Text = $"{periodRevenue:N0}₽";
+            if (CardPeriodOrdersTxt != null)
+                CardPeriodOrdersTxt.Text = $"{periodOrders} {GetOrdersWord(periodOrders)}";
+
+            if (CardAvgCheckTxt != null)
+                CardAvgCheckTxt.Text = $"{avgCheck:N0}₽";
+
+            if (CardTotalUnitsSoldTxt != null)
+                CardTotalUnitsSoldTxt.Text = $"{totalItemsSold:N0} шт";
+            if (CardUniqueItemsTxt != null)
+                CardUniqueItemsTxt.Text = $"{uniqueItemsSold} {GetItemsWord(uniqueItemsSold)}";
+
+            var categoryRevenue = allItems
                 .Where(i => i.Product != null)
                 .GroupBy(i => i.Product.Category)
                 .Select(g => new { 
@@ -253,36 +477,50 @@ namespace TehnikiApp
                 .OrderByDescending(x => x.Revenue)
                 .FirstOrDefault();
 
-            if (categoryRevenue != null)
+            if (categoryRevenue != null && CardTopCategoryTxt != null && CardTopCategoryRevenueTxt != null)
             {
                 var cat = _categories.FirstOrDefault(c => c.Id == categoryRevenue.CategoryId);
                 CardTopCategoryTxt.Text = cat?.Title ?? "Техника";
-                CardTopCategoryRevenueTxt.Text = $"{categoryRevenue.Revenue:N0}₽ дохода";
+                double share = periodRevenue > 0 ? (double)(categoryRevenue.Revenue / periodRevenue) * 100 : 0;
+                CardTopCategoryRevenueTxt.Text = $"{categoryRevenue.Revenue:N0}₽ ({share:F0}% от выручки)";
             }
-            else
+            else if (CardTopCategoryTxt != null && CardTopCategoryRevenueTxt != null)
             {
                 CardTopCategoryTxt.Text = "Нет данных";
                 CardTopCategoryRevenueTxt.Text = "0₽ дохода";
             }
 
             DrawSalesChart();
-            PopulateCategoryBreakdown();
+            PopulateCategoryBreakdown(filteredReceipts, periodRevenue);
+            PopulateTopProductsBreakdown(allItems, periodRevenue);
         }
 
-        private void PopulateCategoryBreakdown()
+        private void PopulateCategoryBreakdown(List<Receipt> filteredReceipts, decimal periodTotalRevenue)
         {
             if (CategoryStatsPanel == null) return;
             CategoryStatsPanel.Children.Clear();
 
-            if (_allReceipts == null || _categories == null || _categories.Count == 0) return;
+            if (_categories == null || _categories.Count == 0 || filteredReceipts.Count == 0)
+            {
+                CategoryStatsPanel.Children.Add(new TextBlock 
+                { 
+                    Text = "Нет данных о продажах за период.", 
+                    Foreground = (Brush)Application.Current.Resources["ThemeTextSecondary"],
+                    FontSize = 14,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 20, 0, 0)
+                });
+                return;
+            }
 
-            var salesByCategory = _allReceipts.SelectMany(r => r.ReceiptItems)
+            var salesByCategory = filteredReceipts.SelectMany(r => r.ReceiptItems)
                 .Where(i => i.Product != null)
                 .GroupBy(i => i.Product.Category)
                 .Select(g => new {
                     CategoryId = g.Key,
                     CategoryName = _categories.FirstOrDefault(c => c.Id == g.Key)?.Title ?? "Другие",
-                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice)
+                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice),
+                    Units = g.Sum(i => i.Quantity)
                 })
                 .OrderByDescending(x => x.Revenue)
                 .ToList();
@@ -291,7 +529,7 @@ namespace TehnikiApp
             {
                 CategoryStatsPanel.Children.Add(new TextBlock 
                 { 
-                    Text = "Нет данных о продажах.", 
+                    Text = "Нет проданных товаров за период.", 
                     Foreground = (Brush)Application.Current.Resources["ThemeTextSecondary"],
                     FontSize = 14,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -313,9 +551,11 @@ namespace TehnikiApp
                 labelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 labelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+                double percentOfTotal = periodTotalRevenue > 0 ? (double)(item.Revenue / periodTotalRevenue) * 100 : 0;
+
                 var txtName = new TextBlock
                 {
-                    Text = item.CategoryName,
+                    Text = $"{item.CategoryName} ({percentOfTotal:F0}%)",
                     Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
                     FontSize = 14,
                     FontWeight = FontWeights.SemiBold,
@@ -326,9 +566,9 @@ namespace TehnikiApp
 
                 var txtValue = new TextBlock
                 {
-                    Text = $"{item.Revenue:N0}₽",
+                    Text = $"{item.Revenue:N0}₽ • {item.Units} шт",
                     Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
-                    FontSize = 14,
+                    FontSize = 13,
                     FontWeight = FontWeights.Bold,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -371,6 +611,108 @@ namespace TehnikiApp
             }
         }
 
+        private void PopulateTopProductsBreakdown(List<ReceiptItem> allItems, decimal periodTotalRevenue)
+        {
+            if (TopProductsStatsPanel == null) return;
+            TopProductsStatsPanel.Children.Clear();
+
+            if (allItems == null || allItems.Count == 0)
+            {
+                TopProductsStatsPanel.Children.Add(new TextBlock 
+                { 
+                    Text = "Нет проданных товаров за период.", 
+                    Foreground = (Brush)Application.Current.Resources["ThemeTextSecondary"],
+                    FontSize = 14,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 20, 0, 0)
+                });
+                return;
+            }
+
+            var topProducts = allItems
+                .Where(i => i.Product != null)
+                .GroupBy(i => i.ProductId)
+                .Select(g => new {
+                    ProductId = g.Key,
+                    ProductTitle = g.First().Product?.Title ?? $"Товар #{g.Key}",
+                    Manufacturer = g.First().Product?.Manufacturer ?? "",
+                    Units = g.Sum(i => i.Quantity),
+                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice)
+                })
+                .OrderByDescending(x => x.Revenue)
+                .Take(5)
+                .ToList();
+
+            decimal maxProdRevenue = topProducts.Count > 0 ? topProducts.Max(p => p.Revenue) : 1;
+            if (maxProdRevenue == 0) maxProdRevenue = 1;
+
+            int rank = 1;
+            foreach (var prod in topProducts)
+            {
+                var card = new Border
+                {
+                    Background = (Brush)Application.Current.Resources["ThemePanelBg"],
+                    BorderBrush = (Brush)Application.Current.Resources["ThemeBorderLight"],
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(12, 10, 12, 10),
+                    Margin = new Thickness(0, 0, 0, 10)
+                };
+
+                var grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var rankTxt = new TextBlock
+                {
+                    Text = $"#{rank++}",
+                    Foreground = (Brush)Application.Current.Resources["ThemeAccent"],
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 14,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                Grid.SetColumn(rankTxt, 0);
+                grid.Children.Add(rankTxt);
+
+                var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                var titleTxt = new TextBlock
+                {
+                    Text = prod.ProductTitle,
+                    Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
+                    FontWeight = FontWeights.SemiBold,
+                    FontSize = 13,
+                    TextTrimming = TextTrimming.CharacterEllipsis
+                };
+                var subTxt = new TextBlock
+                {
+                    Text = $"{prod.Units} шт продано",
+                    Foreground = (Brush)Application.Current.Resources["ThemeTextSecondary"],
+                    FontSize = 11,
+                    Margin = new Thickness(0, 2, 0, 0)
+                };
+                titleStack.Children.Add(titleTxt);
+                titleStack.Children.Add(subTxt);
+                Grid.SetColumn(titleStack, 1);
+                grid.Children.Add(titleStack);
+
+                var revTxt = new TextBlock
+                {
+                    Text = $"{prod.Revenue:N0}₽",
+                    Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 13,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Margin = new Thickness(8, 0, 0, 0)
+                };
+                Grid.SetColumn(revTxt, 2);
+                grid.Children.Add(revTxt);
+
+                card.Child = grid;
+                TopProductsStatsPanel.Children.Add(card);
+            }
+        }
+
         private void DrawSalesChart()
         {
             if (SalesChartCanvas == null || _allReceipts == null) return;
@@ -378,48 +720,187 @@ namespace TehnikiApp
             double canvasWidth = SalesChartCanvas.ActualWidth;
             double canvasHeight = SalesChartCanvas.ActualHeight;
 
-            if (canvasWidth < 50) canvasWidth = 500;
-            if (canvasHeight < 50) canvasHeight = 280;
+            if (canvasWidth < 50) canvasWidth = 600;
+            if (canvasHeight < 50) canvasHeight = 300;
 
             SalesChartCanvas.Children.Clear();
+            _currentChartPoints.Clear();
 
-            var dates = Enumerable.Range(0, 7)
-                .Select(offset => DateTime.Today.AddDays(-6 + offset))
-                .ToList();
+            DateTime start = _analyticsStartDate.Date;
+            DateTime end = _analyticsEndDate.Date;
+            if (start > end) start = end;
 
-            var salesByDay = _allReceipts
-                .Where(r => r.DateTime.Date >= dates.First() && r.DateTime.Date <= dates.Last())
-                .GroupBy(r => r.DateTime.Date)
-                .ToDictionary(g => g.Key, g => g.Sum(r => r.TotalPrice));
+            double totalDays = (end - start).TotalDays + 1;
+            var chartData = new List<ChartDataPoint>();
 
-            var chartData = dates.Select(date => new {
-                Date = date,
-                Label = date.ToString("dd.MM"),
-                Value = salesByDay.ContainsKey(date) ? salesByDay[date] : 0m
-            }).ToList();
+            if (totalDays <= 31)
+            {
+                // По дням
+                for (var d = start; d <= end; d = d.AddDays(1))
+                {
+                    var dayOrders = _allReceipts.Where(r => r.DateTime.Date == d).ToList();
+                    var dayItems = dayOrders.SelectMany(r => r.ReceiptItems).ToList();
+
+                    chartData.Add(new ChartDataPoint
+                    {
+                        Date = d,
+                        EndDate = d,
+                        Label = d.ToString("dd.MM"),
+                        FullPeriodLabel = d.ToString("dd MMMM yyyy"),
+                        Revenue = dayOrders.Sum(r => r.TotalPrice),
+                        OrdersCount = dayOrders.Count,
+                        UnitsSold = dayItems.Sum(i => i.Quantity)
+                    });
+                }
+            }
+            else if (totalDays <= 120)
+            {
+                // По интервалам (недели / несколько дней)
+                int stepDays = (int)Math.Ceiling(totalDays / 14);
+                if (stepDays < 2) stepDays = 2;
+
+                for (var d = start; d <= end; d = d.AddDays(stepDays))
+                {
+                    var dEnd = d.AddDays(stepDays - 1);
+                    if (dEnd > end) dEnd = end;
+
+                    var intervalOrders = _allReceipts.Where(r => r.DateTime.Date >= d && r.DateTime.Date <= dEnd).ToList();
+                    var intervalItems = intervalOrders.SelectMany(r => r.ReceiptItems).ToList();
+
+                    chartData.Add(new ChartDataPoint
+                    {
+                        Date = d,
+                        EndDate = dEnd,
+                        Label = $"{d:dd.MM}",
+                        FullPeriodLabel = $"{d:dd.MM.yyyy} — {dEnd:dd.MM.yyyy}",
+                        Revenue = intervalOrders.Sum(r => r.TotalPrice),
+                        OrdersCount = intervalOrders.Count,
+                        UnitsSold = intervalItems.Sum(i => i.Quantity)
+                    });
+                }
+            }
+            else
+            {
+                // По месяцам
+                var cur = new DateTime(start.Year, start.Month, 1);
+                var lastMonth = new DateTime(end.Year, end.Month, 1);
+
+                while (cur <= lastMonth)
+                {
+                    var monthEnd = cur.AddMonths(1).AddDays(-1);
+                    var rangeStart = cur < start ? start : cur;
+                    var rangeEnd = monthEnd > end ? end : monthEnd;
+
+                    var monthOrders = _allReceipts.Where(r => r.DateTime.Date >= rangeStart && r.DateTime.Date <= rangeEnd).ToList();
+                    var monthItems = monthOrders.SelectMany(r => r.ReceiptItems).ToList();
+
+                    chartData.Add(new ChartDataPoint
+                    {
+                        Date = rangeStart,
+                        EndDate = rangeEnd,
+                        Label = cur.ToString("MMM yy"),
+                        FullPeriodLabel = cur.ToString("MMMM yyyy"),
+                        Revenue = monthOrders.Sum(r => r.TotalPrice),
+                        OrdersCount = monthOrders.Count,
+                        UnitsSold = monthItems.Sum(i => i.Quantity)
+                    });
+
+                    cur = cur.AddMonths(1);
+                }
+            }
+
+            if (chartData.Count == 0)
+            {
+                chartData.Add(new ChartDataPoint
+                {
+                    Date = start,
+                    EndDate = end,
+                    Label = start.ToString("dd.MM"),
+                    FullPeriodLabel = start.ToString("dd MMMM yyyy"),
+                    Revenue = 0,
+                    OrdersCount = 0,
+                    UnitsSold = 0
+                });
+            }
+
+            // Назначаем текущее значение Value в зависимости от метрики
+            foreach (var pt in chartData)
+            {
+                switch (_analyticsMetric)
+                {
+                    case "Orders":
+                        pt.Value = pt.OrdersCount;
+                        break;
+                    case "Units":
+                        pt.Value = pt.UnitsSold;
+                        break;
+                    case "AvgCheck":
+                        pt.Value = (double)pt.AvgCheck;
+                        break;
+                    case "Revenue":
+                    default:
+                        pt.Value = (double)pt.Revenue;
+                        break;
+                }
+            }
+
+            string metricName = _analyticsMetric switch
+            {
+                "Orders" => "Динамика количества заказов",
+                "Units" => "Динамика проданных товаров",
+                "AvgCheck" => "Динамика среднего чека",
+                _ => "Динамика выручки"
+            };
+            if (ChartTitleTxt != null) ChartTitleTxt.Text = metricName;
+
+            decimal totalMetricVal = _analyticsMetric switch
+            {
+                "Orders" => chartData.Sum(p => p.OrdersCount),
+                "Units" => chartData.Sum(p => p.UnitsSold),
+                "AvgCheck" => chartData.Count > 0 ? (decimal)chartData.Average(p => p.Value) : 0,
+                _ => chartData.Sum(p => p.Revenue)
+            };
+
+            string totalFormatted = _analyticsMetric switch
+            {
+                "Orders" => $"{totalMetricVal:N0} заказов",
+                "Units" => $"{totalMetricVal:N0} шт",
+                "AvgCheck" => $"{totalMetricVal:N0}₽",
+                _ => $"{totalMetricVal:N0}₽"
+            };
+
+            if (ChartSubtitleTxt != null)
+                ChartSubtitleTxt.Text = $"Период: {start:dd.MM.yyyy} — {end:dd.MM.yyyy} • {chartData.Count} {GetIntervalWord(chartData.Count)}";
+            if (ChartQuickSummaryTxt != null)
+                ChartQuickSummaryTxt.Text = $"Итого: {totalFormatted}";
 
             double paddingLeft = 70;
             double paddingRight = 30;
-            double paddingTop = 20;
-            double paddingBottom = 40;
+            double paddingTop = 25;
+            double paddingBottom = 45;
 
             double graphWidth = canvasWidth - paddingLeft - paddingRight;
             double graphHeight = canvasHeight - paddingTop - paddingBottom;
+            if (graphWidth < 50) graphWidth = 50;
+            if (graphHeight < 50) graphHeight = 50;
 
-            decimal maxValue = chartData.Max(d => d.Value);
-            if (maxValue == 0) maxValue = 10000;
+            double maxValue = chartData.Max(d => d.Value);
+            if (maxValue <= 0)
+            {
+                maxValue = (_analyticsMetric == "Orders" || _analyticsMetric == "Units") ? 5 : 10000;
+            }
 
-            double maxValDouble = (double)maxValue;
-            double step = Math.Pow(10, Math.Floor(Math.Log10(maxValDouble)));
+            double step = Math.Pow(10, Math.Floor(Math.Log10(maxValue)));
             if (step < 1) step = 1;
-            if (maxValDouble / step < 3) step /= 2;
-            double yAxisMax = Math.Ceiling(maxValDouble / step) * step;
-            if (yAxisMax == 0) yAxisMax = 10000;
+            if (maxValue / step < 3) step /= 2;
+            double yAxisMax = Math.Ceiling(maxValue / step) * step;
+            if (yAxisMax <= 0) yAxisMax = 10;
 
             int gridLineCount = 4;
             Brush gridBrush = (Brush)Application.Current.Resources["ThemeBorderLight"];
             Brush textBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
 
+            // Горизонтальная сетка
             for (int i = 0; i < gridLineCount; i++)
             {
                 double ratio = (double)i / (gridLineCount - 1);
@@ -438,9 +919,13 @@ namespace TehnikiApp
                 };
                 SalesChartCanvas.Children.Add(line);
 
+                string yLabelStr = (_analyticsMetric == "Orders" || _analyticsMetric == "Units")
+                    ? $"{labelValue:N0}"
+                    : $"{labelValue:N0}₽";
+
                 var label = new TextBlock
                 {
-                    Text = $"{labelValue:N0}₽",
+                    Text = yLabelStr,
                     Foreground = textBrush,
                     FontSize = 11,
                     HorizontalAlignment = HorizontalAlignment.Right,
@@ -452,122 +937,379 @@ namespace TehnikiApp
                 SalesChartCanvas.Children.Add(label);
             }
 
-            var points = new List<Point>();
-            for (int i = 0; i < chartData.Count; i++)
-            {
-                double x = paddingLeft + graphWidth * ((double)i / (chartData.Count - 1));
-                double y = paddingTop + graphHeight * (1.0 - (double)chartData[i].Value / yAxisMax);
-                points.Add(new Point(x, y));
-            }
-
-            var areaPoints = new PointCollection();
-            areaPoints.Add(new Point(points.First().X, paddingTop + graphHeight));
-            foreach (var pt in points)
-            {
-                areaPoints.Add(pt);
-            }
-            areaPoints.Add(new Point(points.Last().X, paddingTop + graphHeight));
-
-            var areaPolygon = new System.Windows.Shapes.Polygon
-            {
-                Points = areaPoints
-            };
-
             var accentBrush = (Brush)Application.Current.Resources["ThemeAccent"];
             Color accentColor = accentBrush is SolidColorBrush scb ? scb.Color : Color.FromRgb(37, 99, 235);
-
-            var areaGradient = new LinearGradientBrush
-            {
-                StartPoint = new Point(0.5, 0),
-                EndPoint = new Point(0.5, 1)
-            };
-            areaGradient.GradientStops.Add(new GradientStop(Color.FromArgb(85, accentColor.R, accentColor.G, accentColor.B), 0.0));
-            areaGradient.GradientStops.Add(new GradientStop(Color.FromArgb(0, accentColor.R, accentColor.G, accentColor.B), 1.0));
-
-            areaPolygon.Fill = areaGradient;
-            SalesChartCanvas.Children.Add(areaPolygon);
-
-            var linePoints = new PointCollection();
-            foreach (var pt in points)
-            {
-                linePoints.Add(pt);
-            }
-
-            var polyline = new System.Windows.Shapes.Polyline
-            {
-                Points = linePoints,
-                Stroke = accentBrush,
-                StrokeThickness = 3,
-                StrokeLineJoin = PenLineJoin.Round
-            };
-            SalesChartCanvas.Children.Add(polyline);
-
             Brush cardBgBrush = (Brush)Application.Current.Resources["ThemeCardBg"];
 
-            for (int i = 0; i < chartData.Count; i++)
+            if (_analyticsChartType == "Bar")
             {
-                var pt = points[i];
-                var dataItem = chartData[i];
+                // Рендеринг столбчатой диаграммы (Bar Chart)
+                double slotWidth = graphWidth / chartData.Count;
+                double barWidth = Math.Max(10, Math.Min(48, slotWidth * 0.65));
 
-                var xLabel = new TextBlock
+                for (int i = 0; i < chartData.Count; i++)
                 {
-                    Text = dataItem.Label,
-                    Foreground = textBrush,
-                    FontSize = 11,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    TextAlignment = TextAlignment.Center,
-                    Width = 60
-                };
-                Canvas.SetLeft(xLabel, pt.X - 30);
-                Canvas.SetTop(xLabel, paddingTop + graphHeight + 10);
-                SalesChartCanvas.Children.Add(xLabel);
+                    var item = chartData[i];
+                    double barHeight = graphHeight * (item.Value / yAxisMax);
+                    if (barHeight < 3 && item.Value > 0) barHeight = 3;
 
-                var dot = new System.Windows.Shapes.Ellipse
-                {
-                    Width = 10,
-                    Height = 10,
-                    Fill = cardBgBrush,
-                    Stroke = accentBrush,
-                    StrokeThickness = 2.5,
-                    Cursor = Cursors.Hand,
-                    ToolTip = new ToolTip
-                    {
-                        Content = $"{dataItem.Date:dd MMMM yyyy}\nВыручка: {dataItem.Value:N0}₽",
-                        FontSize = 13,
-                        FontWeight = FontWeights.SemiBold,
-                        Background = cardBgBrush,
-                        Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
-                        BorderBrush = gridBrush,
-                        BorderThickness = new Thickness(1),
-                        Padding = new Thickness(8, 5, 8, 5)
-                    }
-                };
+                    double x = paddingLeft + (i + 0.5) * slotWidth - barWidth / 2;
+                    double y = paddingTop + graphHeight - barHeight;
 
-                dot.MouseEnter += (s, e) => {
-                    if (s is System.Windows.Shapes.Ellipse el)
-                    {
-                        el.Width = 14;
-                        el.Height = 14;
-                        Canvas.SetLeft(el, pt.X - 7);
-                        Canvas.SetTop(el, pt.Y - 7);
-                        el.StrokeThickness = 3.5;
-                    }
-                };
-                dot.MouseLeave += (s, e) => {
-                    if (s is System.Windows.Shapes.Ellipse el)
-                    {
-                        el.Width = 10;
-                        el.Height = 10;
-                        Canvas.SetLeft(el, pt.X - 5);
-                        Canvas.SetTop(el, pt.Y - 5);
-                        el.StrokeThickness = 2.5;
-                    }
-                };
+                    item.X = x + barWidth / 2;
+                    item.Y = y;
+                    item.BarWidth = barWidth;
+                    item.BarHeight = barHeight;
 
-                Canvas.SetLeft(dot, pt.X - 5);
-                Canvas.SetTop(dot, pt.Y - 5);
-                SalesChartCanvas.Children.Add(dot);
+                    // Фон столбца (тень)
+                    var bgSlot = new System.Windows.Shapes.Rectangle
+                    {
+                        Width = barWidth,
+                        Height = graphHeight,
+                        RadiusX = 5,
+                        RadiusY = 5,
+                        Fill = (Brush)Application.Current.Resources["ThemePanelBg"],
+                        Opacity = 0.3
+                    };
+                    Canvas.SetLeft(bgSlot, x);
+                    Canvas.SetTop(bgSlot, paddingTop);
+                    SalesChartCanvas.Children.Add(bgSlot);
+
+                    // Сам столбец с градиентом
+                    var barGradient = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0.5, 0),
+                        EndPoint = new Point(0.5, 1)
+                    };
+                    barGradient.GradientStops.Add(new GradientStop(Color.FromArgb(240, 56, 189, 248), 0.0));
+                    barGradient.GradientStops.Add(new GradientStop(Color.FromArgb(200, accentColor.R, accentColor.G, accentColor.B), 1.0));
+
+                    var bar = new System.Windows.Shapes.Rectangle
+                    {
+                        Width = barWidth,
+                        Height = Math.Max(2, barHeight),
+                        RadiusX = 5,
+                        RadiusY = 5,
+                        Fill = barGradient,
+                        Cursor = Cursors.Hand
+                    };
+
+                    Canvas.SetLeft(bar, x);
+                    Canvas.SetTop(bar, y);
+                    SalesChartCanvas.Children.Add(bar);
+
+                    // Значение над столбцом, если помещается
+                    if (item.Value > 0 && barWidth >= 20)
+                    {
+                        string valText = (_analyticsMetric == "Orders" || _analyticsMetric == "Units")
+                            ? $"{item.Value:N0}"
+                            : $"{item.Value / 1000:0.#}k";
+
+                        var topLabel = new TextBlock
+                        {
+                            Text = valText,
+                            Foreground = (Brush)Application.Current.Resources["ThemeTextPrimary"],
+                            FontSize = 10,
+                            FontWeight = FontWeights.Bold,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            TextAlignment = TextAlignment.Center,
+                            Width = barWidth + 20
+                        };
+                        Canvas.SetLeft(topLabel, x - 10);
+                        Canvas.SetTop(topLabel, Math.Max(0, y - 16));
+                        SalesChartCanvas.Children.Add(topLabel);
+                    }
+
+                    // Подпись оси X
+                    bool showLabel = chartData.Count <= 16 || i % Math.Ceiling(chartData.Count / 14.0) == 0 || i == chartData.Count - 1;
+                    if (showLabel)
+                    {
+                        var xLabel = new TextBlock
+                        {
+                            Text = item.Label,
+                            Foreground = textBrush,
+                            FontSize = 11,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            TextAlignment = TextAlignment.Center,
+                            Width = Math.Max(50, slotWidth)
+                        };
+                        Canvas.SetLeft(xLabel, x + barWidth / 2 - Math.Max(50, slotWidth) / 2);
+                        Canvas.SetTop(xLabel, paddingTop + graphHeight + 10);
+                        SalesChartCanvas.Children.Add(xLabel);
+                    }
+
+                    _currentChartPoints.Add(item);
+                }
             }
+            else
+            {
+                // Рендеринг линейного графика с градиентной заливкой (Area Chart)
+                var points = new List<Point>();
+                for (int i = 0; i < chartData.Count; i++)
+                {
+                    double x = chartData.Count > 1
+                        ? paddingLeft + graphWidth * ((double)i / (chartData.Count - 1))
+                        : paddingLeft + graphWidth / 2;
+
+                    double y = paddingTop + graphHeight * (1.0 - chartData[i].Value / yAxisMax);
+
+                    chartData[i].X = x;
+                    chartData[i].Y = y;
+                    points.Add(new Point(x, y));
+                    _currentChartPoints.Add(chartData[i]);
+                }
+
+                if (points.Count > 1)
+                {
+                    // Область заливки
+                    var areaPoints = new PointCollection();
+                    areaPoints.Add(new Point(points.First().X, paddingTop + graphHeight));
+                    foreach (var pt in points)
+                    {
+                        areaPoints.Add(pt);
+                    }
+                    areaPoints.Add(new Point(points.Last().X, paddingTop + graphHeight));
+
+                    var areaPolygon = new System.Windows.Shapes.Polygon
+                    {
+                        Points = areaPoints
+                    };
+
+                    var areaGradient = new LinearGradientBrush
+                    {
+                        StartPoint = new Point(0.5, 0),
+                        EndPoint = new Point(0.5, 1)
+                    };
+                    areaGradient.GradientStops.Add(new GradientStop(Color.FromArgb(90, accentColor.R, accentColor.G, accentColor.B), 0.0));
+                    areaGradient.GradientStops.Add(new GradientStop(Color.FromArgb(0, accentColor.R, accentColor.G, accentColor.B), 1.0));
+
+                    areaPolygon.Fill = areaGradient;
+                    SalesChartCanvas.Children.Add(areaPolygon);
+
+                    // Линия графика
+                    var linePoints = new PointCollection();
+                    foreach (var pt in points)
+                    {
+                        linePoints.Add(pt);
+                    }
+
+                    var polyline = new System.Windows.Shapes.Polyline
+                    {
+                        Points = linePoints,
+                        Stroke = accentBrush,
+                        StrokeThickness = 3,
+                        StrokeLineJoin = PenLineJoin.Round
+                    };
+                    SalesChartCanvas.Children.Add(polyline);
+                }
+
+                // Точки и подписи
+                for (int i = 0; i < chartData.Count; i++)
+                {
+                    var pt = points[i];
+                    var dataItem = chartData[i];
+
+                    bool showLabel = chartData.Count <= 16 || i % Math.Ceiling(chartData.Count / 14.0) == 0 || i == chartData.Count - 1;
+                    if (showLabel)
+                    {
+                        var xLabel = new TextBlock
+                        {
+                            Text = dataItem.Label,
+                            Foreground = textBrush,
+                            FontSize = 11,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            TextAlignment = TextAlignment.Center,
+                            Width = 60
+                        };
+                        Canvas.SetLeft(xLabel, pt.X - 30);
+                        Canvas.SetTop(xLabel, paddingTop + graphHeight + 10);
+                        SalesChartCanvas.Children.Add(xLabel);
+                    }
+
+                    var dot = new System.Windows.Shapes.Ellipse
+                    {
+                        Width = 10,
+                        Height = 10,
+                        Fill = cardBgBrush,
+                        Stroke = accentBrush,
+                        StrokeThickness = 2.5,
+                        Cursor = Cursors.Hand
+                    };
+
+                    Canvas.SetLeft(dot, pt.X - 5);
+                    Canvas.SetTop(dot, pt.Y - 5);
+                    SalesChartCanvas.Children.Add(dot);
+                }
+            }
+        }
+
+        private void SalesChartCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_currentChartPoints.Count == 0 || SalesChartCanvas == null) return;
+
+            Point mousePos = e.GetPosition(SalesChartCanvas);
+
+            // Ищем ближайшую точку по оси X
+            ChartDataPoint? closest = _currentChartPoints
+                .OrderBy(p => Math.Abs(p.X - mousePos.X))
+                .FirstOrDefault();
+
+            if (closest == null) return;
+
+            double canvasHeight = SalesChartCanvas.ActualHeight;
+            if (canvasHeight < 50) canvasHeight = 300;
+
+            // Вертикальная линия трекинга (crosshair)
+            if (_chartHoverLine == null)
+            {
+                _chartHoverLine = new System.Windows.Shapes.Line
+                {
+                    Stroke = (Brush)Application.Current.Resources["ThemeAccent"],
+                    StrokeThickness = 1.5,
+                    StrokeDashArray = new DoubleCollection { 3, 3 },
+                    Opacity = 0.8
+                };
+            }
+
+            if (!SalesChartCanvas.Children.Contains(_chartHoverLine))
+            {
+                SalesChartCanvas.Children.Add(_chartHoverLine);
+            }
+
+            _chartHoverLine.X1 = closest.X;
+            _chartHoverLine.Y1 = 20;
+            _chartHoverLine.X2 = closest.X;
+            _chartHoverLine.Y2 = canvasHeight - 35;
+
+            // Подсвеченная точка
+            if (_chartHoverDot == null)
+            {
+                _chartHoverDot = new System.Windows.Shapes.Ellipse
+                {
+                    Width = 14,
+                    Height = 14,
+                    Fill = new SolidColorBrush(Color.FromRgb(56, 189, 248)),
+                    Stroke = Brushes.White,
+                    StrokeThickness = 2.5
+                };
+            }
+
+            if (!SalesChartCanvas.Children.Contains(_chartHoverDot))
+            {
+                SalesChartCanvas.Children.Add(_chartHoverDot);
+            }
+
+            Canvas.SetLeft(_chartHoverDot, closest.X - 7);
+            Canvas.SetTop(_chartHoverDot, closest.Y - 7);
+
+            // Плавающий бейдж (HUD)
+            if (_chartHoverBadge == null)
+            {
+                _chartHoverBadge = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromArgb(230, 15, 23, 42)),
+                    BorderBrush = (Brush)Application.Current.Resources["ThemeBorderLight"],
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(12, 8, 12, 8),
+                    IsHitTestVisible = false
+                };
+            }
+
+            var badgeStack = new StackPanel();
+            badgeStack.Children.Add(new TextBlock
+            {
+                Text = closest.FullPeriodLabel,
+                Foreground = (Brush)Application.Current.Resources["ThemeTextSecondary"],
+                FontSize = 11,
+                FontWeight = FontWeights.Medium,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+
+            string metricValueStr = _analyticsMetric switch
+            {
+                "Orders" => $"{closest.OrdersCount} заказов",
+                "Units" => $"{closest.UnitsSold} товаров",
+                "AvgCheck" => $"{closest.AvgCheck:N0}₽",
+                _ => $"{closest.Revenue:N0}₽"
+            };
+
+            badgeStack.Children.Add(new TextBlock
+            {
+                Text = metricValueStr,
+                Foreground = Brushes.White,
+                FontSize = 15,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+
+            badgeStack.Children.Add(new TextBlock
+            {
+                Text = $"Выручка: {closest.Revenue:N0}₽ • Заказов: {closest.OrdersCount} • Товаров: {closest.UnitsSold} шт",
+                Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184)),
+                FontSize = 11
+            });
+
+            _chartHoverBadge.Child = badgeStack;
+
+            if (!SalesChartCanvas.Children.Contains(_chartHoverBadge))
+            {
+                SalesChartCanvas.Children.Add(_chartHoverBadge);
+            }
+
+            double badgeX = closest.X + 15;
+            double badgeY = Math.Max(10, closest.Y - 40);
+
+            // Если бейдж выходит за правую границу
+            if (badgeX + 190 > SalesChartCanvas.ActualWidth)
+            {
+                badgeX = closest.X - 200;
+            }
+
+            Canvas.SetLeft(_chartHoverBadge, Math.Max(10, badgeX));
+            Canvas.SetTop(_chartHoverBadge, badgeY);
+        }
+
+        private void SalesChartCanvas_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (SalesChartCanvas == null) return;
+
+            if (_chartHoverLine != null)
+                SalesChartCanvas.Children.Remove(_chartHoverLine);
+            if (_chartHoverDot != null)
+                SalesChartCanvas.Children.Remove(_chartHoverDot);
+            if (_chartHoverBadge != null)
+                SalesChartCanvas.Children.Remove(_chartHoverBadge);
+        }
+
+        private static string GetOrdersWord(int n)
+        {
+            int mod100 = n % 100;
+            int mod10 = n % 10;
+            if (mod100 >= 11 && mod100 <= 19) return "заказов";
+            if (mod10 == 1) return "заказ";
+            if (mod10 >= 2 && mod10 <= 4) return "заказа";
+            return "заказов";
+        }
+
+        private static string GetItemsWord(int n)
+        {
+            int mod100 = n % 100;
+            int mod10 = n % 10;
+            if (mod100 >= 11 && mod100 <= 19) return "позиций";
+            if (mod10 == 1) return "позиция";
+            if (mod10 >= 2 && mod10 <= 4) return "позиции";
+            return "позиций";
+        }
+
+        private static string GetIntervalWord(int n)
+        {
+            int mod100 = n % 100;
+            int mod10 = n % 10;
+            if (mod100 >= 11 && mod100 <= 19) return "интервалов";
+            if (mod10 == 1) return "интервал";
+            if (mod10 >= 2 && mod10 <= 4) return "интервала";
+            return "интервалов";
         }
 
         private void SalesChartCanvas_SizeChanged(object sender, SizeChangedEventArgs e)

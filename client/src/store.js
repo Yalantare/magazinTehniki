@@ -272,12 +272,7 @@ export const store = reactive({
     try {
       const serverRevs = await api.getReviews(articul)
       if (Array.isArray(serverRevs)) {
-        if (!this.reviews[articul]) {
-          this.reviews[articul] = []
-        }
-        const existingIds = new Set(this.reviews[articul].map(r => String(r.id)))
-        const newRevs = serverRevs.filter(r => !existingIds.has(String(r.id)))
-        this.reviews[articul] = [...newRevs, ...this.reviews[articul]]
+        this.reviews[articul] = serverRevs
         localStorage.setItem('reviews', JSON.stringify(this.reviews))
       }
     } catch (e) {
@@ -286,23 +281,22 @@ export const store = reactive({
   },
 
   getRating(articul) {
-    const prod = this.products.find(p => p.articul === articul)
     const revs = this.getReviews(articul)
     if (revs.length === 0) {
+      const prod = this.products.find(p => p.articul === articul)
       return {
-        rating: prod ? prod.rating : 5,
-        count: prod ? prod.reviewsCount : 0
+        rating: prod ? (prod.rating || 5) : 5,
+        count: prod ? (prod.reviewsCount || 0) : 0
       }
     }
     let sum = 0
     for (let i = 0; i < revs.length; i++) {
       sum += revs[i].rating
     }
-    const totalCount = (prod ? prod.reviewsCount : 0) + revs.length
-    const avg = ((prod ? prod.rating : 5) * (prod ? prod.reviewsCount : 0) + sum) / totalCount
+    const avg = sum / revs.length
     return {
       rating: Math.round(avg * 10) / 10,
-      count: totalCount
+      count: revs.length
     }
   },
 

@@ -72,6 +72,47 @@ def _sync_product_images():
     except Exception as e:
         print(f"[DB] Ошибка синхронизации изображений: {e}")
 
+def _migrate_schema(db_engine):
+    """Автоматически приводит схему существующих таблиц БД в соответствие с 3NF."""
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(db_engine)
+        existing_tables = inspector.get_table_names()
+        with db_engine.begin() as conn:
+            if "roles" in existing_tables:
+                conn.execute(text("INSERT IGNORE INTO roles (id, name) VALUES (1, 'user'), (2, 'admin')"))
+            if "manufacturers" in existing_tables:
+                conn.execute(text("INSERT IGNORE INTO manufacturers (id, name) VALUES (1, 'Apple'), (2, 'Xiaomi'), (3, 'Samsung'), (4, 'Huawei')"))
+            if "users" in existing_tables:
+                user_cols = [c["name"] for c in inspector.get_columns("users")]
+                if "role_id" not in user_cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN role_id INT DEFAULT 1"))
+                    if "role" in user_cols:
+                        conn.execute(text("UPDATE users SET role_id = 2 WHERE role = 'admin'"))
+            if "products" in existing_tables:
+                prod_cols = [c["name"] for c in inspector.get_columns("products")]
+                if "category_id" not in prod_cols:
+                    conn.execute(text("ALTER TABLE products ADD COLUMN category_id INT"))
+                    if "category" in prod_cols:
+                        conn.execute(text("UPDATE products SET category_id = category WHERE category IS NOT NULL"))
+                if "manufacturer_id" not in prod_cols:
+                    conn.execute(text("ALTER TABLE products ADD COLUMN manufacturer_id INT"))
+                    if "manufacturer" in prod_cols:
+                        conn.execute(text("UPDATE products p JOIN manufacturers m ON LOWER(TRIM(p.manufacturer)) = LOWER(TRIM(m.name)) SET p.manufacturer_id = m.id"))
+                    conn.execute(text("UPDATE products SET manufacturer_id = 1 WHERE manufacturer_id IS NULL"))
+            if "receipts" in existing_tables:
+                rec_cols = [c["name"] for c in inspector.get_columns("receipts")]
+                if "status_id" not in rec_cols:
+                    conn.execute(text("ALTER TABLE receipts ADD COLUMN status_id INT DEFAULT 1"))
+                    if "status" in rec_cols:
+                        conn.execute(text("UPDATE receipts SET status_id = status WHERE status IS NOT NULL"))
+            if "reviews" in existing_tables:
+                rev_cols = [c["name"] for c in inspector.get_columns("reviews")]
+                if "user_id" not in rev_cols:
+                    conn.execute(text("ALTER TABLE reviews ADD COLUMN user_id INT NULL"))
+    except Exception as e:
+        print(f"[DB] Предупреждение при проверке/миграции схемы: {e}")
+
 def _seed_initial_data(session: Session, models_module):
     """Наполняет базу данных начальными данными, если таблицы пусты."""
     try:
@@ -158,26 +199,6 @@ def _seed_initial_data(session: Session, models_module):
             session.add(demo_user)
             session.commit()
             print("[DB] Создан тестовый пользователь (hayrullinrafael2@gmail.com / password123).")
-
-        # Дополнительные пользователи для отзывов
-        review_authors = [
-            (4, "Алексей С.", "aleksey@shop.ru"),
-            (5, "Артур Г.", "artur@shop.ru"),
-            (6, "Сергей Т.", "sergey@shop.ru"),
-            (7, "Владимир П.", "vladimir@shop.ru"),
-        ]
-        for uid, uname, uemail in review_authors:
-            existing_u = session.get(models_module.User, uid)
-            if not existing_u:
-                session.add(models_module.User(
-                    user_id=uid,
-                    role_id=1,
-                    name=uname,
-                    phone="+7999000000" + str(uid),
-                    password="guest",
-                    email=uemail
-                ))
-        session.commit()
 
         # 6. Товары и вариации
         products = session.exec(select(models_module.Product)).all()
@@ -282,10 +303,11 @@ def _seed_initial_data(session: Session, models_module):
         reviews = session.exec(select(models_module.Review)).all()
         if not reviews:
             initial_reviews = [
-                models_module.Review(product_id=5, user_id=4, rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
-                models_module.Review(product_id=4, user_id=5, rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
-                models_module.Review(product_id=3, user_id=6, rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
-                models_module.Review(product_id=2, user_id=7, rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
+                models_module.Review(articul=5, user_name="Алексей С.", rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
+                models_module.Review(articul=4, user_name="Артур Г.", rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
+                models_module.Review(articul=3, user_name="Сергей Т.", rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
+                models_module.Review(articul=2, user_name="Владимир П.", rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
+                models_module.Review(articul=1, user_name="Евгений Д.", rating=5, date="01.09.2026", comment="Отличные часы, очень стильные и функциональные! Батарею держат весь день."),
             ]
             session.add_all(initial_reviews)
             session.commit()
@@ -311,6 +333,7 @@ def init_db(retries: int = 5, delay: float = 2.0):
         try:
             print(f"[DB] Подключение к базе данных ({DB_HOST}:{DB_PORT}/{DB_NAME}), попытка {attempt}/{retries}...")
             SQLModel.metadata.create_all(engine)
+            _migrate_schema(engine)
             print("[DB] Таблицы базы данных успешно созданы или проверены.")
             
             with Session(engine) as session:

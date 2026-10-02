@@ -131,6 +131,10 @@ export const api = {
         comment
       })
     })
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.detail || 'Failed to add review')
+    }
     return await res.json()
   }
 }
