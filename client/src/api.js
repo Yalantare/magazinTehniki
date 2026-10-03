@@ -35,7 +35,14 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     })
-    if (!res.ok) throw new Error('Ошибка входа')
+    if (!res.ok) {
+      let msg = 'Неверный email/телефон или пароль'
+      try {
+        const data = await res.json()
+        if (data.detail) msg = data.detail
+      } catch (e) {}
+      throw new Error(msg)
+    }
     return await res.json()
   },
 
@@ -45,7 +52,14 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, phone, password })
     })
-    if (!res.ok) throw new Error('Ошибка регистрации')
+    if (!res.ok) {
+      let msg = 'Ошибка регистрации'
+      try {
+        const data = await res.json()
+        if (data.detail) msg = data.detail
+      } catch (e) {}
+      throw new Error(msg)
+    }
     return await res.json()
   },
 
@@ -106,11 +120,12 @@ export const api = {
     return await res.json()
   },
 
-  async addReview(articul, userName, rating, comment) {
+  async addReview(articul, userName, rating, comment, userId = null) {
     const res = await fetch(`${BASE_URL}/products/${articul}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        user_id: userId,
         user_name: userName,
         rating,
         comment

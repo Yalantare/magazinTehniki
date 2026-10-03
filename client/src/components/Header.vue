@@ -32,7 +32,7 @@
       </button>
 
       <button
-        v-if="store.isGuest"
+        v-if="store.isGuest || !store.user"
         class="guest-login-btn"
         @click="router.push('/')"
       >

@@ -3,8 +3,8 @@ import { products, categories, brands, orders, reviews, user } from './data.js'
 import { api } from './api.js'
 
 export const store = reactive({
-  user: JSON.parse(localStorage.getItem('user')) || user,
-  isGuest: localStorage.getItem('isGuest') === 'true',
+  user: JSON.parse(localStorage.getItem('user')) || null,
+  isGuest: localStorage.getItem('isGuest') === 'true' || !localStorage.getItem('user'),
   theme: localStorage.getItem('theme') || 'dark',
   cart: JSON.parse(localStorage.getItem('cart')) || [],
   orders: JSON.parse(localStorage.getItem('orders')) || orders,
@@ -76,18 +76,8 @@ export const store = reactive({
       await this.loadOrders()
       return true
     } catch (e) {
-      this.user = {
-        userId: 2,
-        role: 'user',
-        name: 'Рафаэль Хайруллин',
-        phone: '79174948936',
-        email: email,
-        password: pass
-      }
-      this.isGuest = false
-      localStorage.setItem('user', JSON.stringify(this.user))
-      localStorage.setItem('isGuest', 'false')
-      return false
+      console.warn('Login error:', e)
+      throw e
     }
   },
 
@@ -317,7 +307,7 @@ export const store = reactive({
 
     let serverRev = null
     try {
-      serverRev = await api.addReview(articul, author, rating, comment)
+      serverRev = await api.addReview(articul, author, rating, comment, this.user ? this.user.userId : null)
     } catch (e) {
       console.warn('Could not post review to API, saving locally:', e)
     }

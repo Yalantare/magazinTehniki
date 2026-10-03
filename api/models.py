@@ -29,7 +29,7 @@ class User(SQLModel, table=True):
     __tablename__ = "users"
 
     user_id: Optional[int] = Field(default=None, primary_key=True)
-    role_id: int = Field(default=1, foreign_key="roles.id")
+    role_id: Optional[int] = Field(default=1, foreign_key="roles.id")
     name: str
     phone: str = Field(index=True)
     password: str
@@ -45,6 +45,14 @@ class User(SQLModel, table=True):
             self.role_id = 2
         else:
             self.role_id = 1
+
+    def __init__(self, **data):
+        if "role" in data and "role_id" not in data:
+            val = data.pop("role")
+            data["role_id"] = 2 if str(val).lower() == "admin" else 1
+        elif "role" in data:
+            data.pop("role")
+        super().__init__(**data)
 
 class Product(SQLModel, table=True):
     __tablename__ = "products"
@@ -66,13 +74,20 @@ class Product(SQLModel, table=True):
     def category(self, val: int):
         self.category_id = val
 
-    @property
-    def manufacturer(self) -> str:
-        return ""
-
-    @manufacturer.setter
-    def manufacturer(self, val):
-        pass
+    def __init__(self, **data):
+        if "rating" in data:
+            data.pop("rating")
+        if "reviews_count" in data:
+            data.pop("reviews_count")
+        if "manufacturer" in data and "manufacturer_id" not in data:
+            mfg = data.pop("manufacturer")
+            if isinstance(mfg, int):
+                data["manufacturer_id"] = mfg
+        if "category" in data and "category_id" not in data:
+            cat = data.pop("category")
+            if isinstance(cat, int):
+                data["category_id"] = cat
+        super().__init__(**data)
 
 class ProductVariation(SQLModel, table=True):
     __tablename__ = "product_variations"
@@ -103,6 +118,21 @@ class Receipt(SQLModel, table=True):
     def status(self, val: int):
         self.status_id = val
 
+    @property
+    def status_title(self) -> str:
+        return ""
+
+    @status_title.setter
+    def status_title(self, val: str):
+        pass
+
+    def __init__(self, **data):
+        if "status_title" in data:
+            data.pop("status_title")
+        if "status" in data and "status_id" not in data:
+            data["status_id"] = data.pop("status")
+        super().__init__(**data)
+
 class ReceiptItem(SQLModel, table=True):
     __tablename__ = "receipt_items"
 
@@ -117,12 +147,36 @@ class Review(SQLModel, table=True):
     __tablename__ = "reviews"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    articul: int = Field(foreign_key="products.articul")
-    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
-    user_name: Optional[str] = Field(default="")
+    product_id: int = Field(foreign_key="products.articul")
     rating: int = Field(default=5)
     date: str = Field(default="")
     comment: str = Field(default="")
+    user_id: int = Field(foreign_key="users.user_id")
+
+    @property
+    def articul(self) -> int:
+        return self.product_id
+
+    @articul.setter
+    def articul(self, val: int):
+        self.product_id = val
+
+    @property
+    def user_name(self) -> str:
+        return ""
+
+    @user_name.setter
+    def user_name(self, val: str):
+        pass
+
+    def __init__(self, **data):
+        if "articul" in data and "product_id" not in data:
+            data["product_id"] = data.pop("articul")
+        elif "articul" in data:
+            data.pop("articul")
+        if "user_name" in data:
+            data.pop("user_name")
+        super().__init__(**data)
 
 class LoginRequest(SQLModel):
     email: str
@@ -204,12 +258,6 @@ class ReviewCreate(SQLModel):
 class StatusUpdate(SQLModel):
     status_id: int
 
-class VariationDirectCreate(SQLModel):
-    productId: int
-    name: str
-    price: float
-    stock: int = 0
-
 class CreateOrderItemRequest(SQLModel):
     product_id: int
     variation_id: Optional[int] = None
@@ -223,4 +271,3 @@ class CreateOrderRequest(SQLModel):
     email: Optional[str] = None
     address: Optional[str] = ""
     items: list[CreateOrderItemRequest] = []
-

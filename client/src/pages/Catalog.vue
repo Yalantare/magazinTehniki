@@ -58,8 +58,11 @@
             <input
               v-model="searchQuery"
               type="text"
+              maxlength="60"
               placeholder="Поиск по товарам..."
               class="search-input"
+              @keydown="handleSpaceKeydown($event, searchQuery, 5)"
+              @input="searchQuery = sanitizeTextWithSpaces($event.target.value, 5, 60)"
             />
           </div>
 
@@ -96,6 +99,7 @@ import Header from '../components/Header.vue'
 import ProductCard from '../components/ProductCard.vue'
 import ChatBot from '../components/ChatBot.vue'
 import { store } from '../store.js'
+import { handleSpaceKeydown, sanitizeTextWithSpaces } from '../utils/validators.js'
 
 const selectedCategories = ref([])
 const selectedBrands = ref([])

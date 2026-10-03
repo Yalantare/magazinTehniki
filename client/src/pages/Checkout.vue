@@ -29,9 +29,12 @@
                 <input
                   v-model="name"
                   type="text"
+                  maxlength="60"
                   placeholder="Иван Иванов"
                   class="input"
                   required
+                  @keydown="handleSpaceKeydown($event, name, 2)"
+                  @input="name = sanitizeName($event.target.value, 2, 60)"
                 />
               </div>
 
@@ -40,9 +43,12 @@
                 <input
                   v-model="phone"
                   type="tel"
+                  maxlength="18"
                   placeholder="+7 (999) 000-00-00"
                   class="input"
                   required
+                  @keydown="handleSpaceKeydown($event, phone, 0)"
+                  @input="phone = formatPhone($event.target.value)"
                 />
               </div>
             </div>
@@ -56,9 +62,12 @@
                 <input
                   v-model="city"
                   type="text"
+                  maxlength="50"
                   placeholder="г. Уфа"
                   class="input"
                   required
+                  @keydown="handleSpaceKeydown($event, city, 2)"
+                  @input="city = sanitizeTextWithSpaces($event.target.value, 2, 50)"
                 />
               </div>
 
@@ -67,9 +76,12 @@
                 <input
                   v-model="street"
                   type="text"
+                  maxlength="80"
                   placeholder="ул. Кирова"
                   class="input"
                   required
+                  @keydown="handleSpaceKeydown($event, street, 4)"
+                  @input="street = sanitizeTextWithSpaces($event.target.value, 4, 80)"
                 />
               </div>
             </div>
@@ -80,9 +92,12 @@
                 <input
                   v-model="house"
                   type="text"
+                  maxlength="12"
                   placeholder="д. 65/2"
                   class="input"
                   required
+                  @keydown="handleSpaceKeydown($event, house, 1)"
+                  @input="house = sanitizeTextWithSpaces($event.target.value, 1, 12)"
                 />
               </div>
 
@@ -91,8 +106,11 @@
                 <input
                   v-model="floor"
                   type="text"
+                  maxlength="3"
                   placeholder="2"
                   class="input"
+                  @keydown="handleSpaceKeydown($event, floor, 0)"
+                  @input="floor = sanitizeDigits($event.target.value, 3)"
                 />
               </div>
 
@@ -101,8 +119,11 @@
                 <input
                   v-model="entrance"
                   type="text"
+                  maxlength="3"
                   placeholder="1"
                   class="input"
+                  @keydown="handleSpaceKeydown($event, entrance, 0)"
+                  @input="entrance = sanitizeDigits($event.target.value, 3)"
                 />
               </div>
 
@@ -111,8 +132,11 @@
                 <input
                   v-model="apartment"
                   type="text"
+                  maxlength="10"
                   placeholder="кв. 1"
                   class="input"
+                  @keydown="handleSpaceKeydown($event, apartment, 1)"
+                  @input="apartment = sanitizeTextWithSpaces($event.target.value, 1, 10)"
                 />
               </div>
             </div>
@@ -167,8 +191,11 @@
                 <input
                   v-model="cardNumber"
                   type="text"
+                  maxlength="19"
                   placeholder="0000 0000 0000 0000"
                   class="input"
+                  @keydown="handleSpaceKeydown($event, cardNumber, 0)"
+                  @input="cardNumber = sanitizeCardNumber($event.target.value)"
                 />
               </div>
 
@@ -178,8 +205,11 @@
                   <input
                     v-model="cardExpiry"
                     type="text"
+                    maxlength="5"
                     placeholder="ММ/ГГ"
                     class="input"
+                    @keydown="handleSpaceKeydown($event, cardExpiry, 0)"
+                    @input="cardExpiry = sanitizeCardExpiry($event.target.value)"
                   />
                 </div>
 
@@ -188,9 +218,11 @@
                   <input
                     v-model="cardCvv"
                     type="password"
+                    maxlength="3"
                     placeholder="***"
-                    maxlength="4"
                     class="input"
+                    @keydown="handleSpaceKeydown($event, cardCvv, 0)"
+                    @input="cardCvv = sanitizeCardCvv($event.target.value)"
                   />
                 </div>
               </div>
@@ -272,11 +304,22 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
+import {
+  handleSpaceKeydown,
+  sanitizeName,
+  formatPhone,
+  isValidPhone,
+  sanitizeTextWithSpaces,
+  sanitizeDigits,
+  sanitizeCardNumber,
+  sanitizeCardExpiry,
+  sanitizeCardCvv
+} from '../utils/validators.js'
 
 const router = useRouter()
 
-const name = ref(store.user?.name || 'Рафаэль Хайруллин')
-const phone = ref(store.user?.phone || '79174948936')
+const name = ref(sanitizeName(store.user?.name || '', 2, 60))
+const phone = ref(formatPhone(store.user?.phone || ''))
 const city = ref('г. Уфа')
 const street = ref('ул. Кирова')
 const house = ref('д. 65/2')
@@ -297,6 +340,27 @@ async function submitOrder() {
   if (!name.value || !phone.value || !city.value || !street.value || !house.value) {
     error.value = 'Заполните поля доставки (ФИО, телефон, город, улица, дом)'
     return
+  }
+
+  if (!isValidPhone(phone.value)) {
+    error.value = 'Введите полный номер телефона (+7 (XXX) XXX-XX-XX)'
+    return
+  }
+
+  if (paymentMethod.value === 'card') {
+    const rawCard = cardNumber.value.replace(/\s/g, '')
+    if (rawCard.length !== 16) {
+      error.value = 'Введите полный 16-значный номер карты'
+      return
+    }
+    if (cardExpiry.value.length !== 5) {
+      error.value = 'Введите срок действия карты (ММ/ГГ)'
+      return
+    }
+    if (cardCvv.value.length !== 3) {
+      error.value = 'Введите 3 цифры CVV кода'
+      return
+    }
   }
 
   isSubmitting.value = true

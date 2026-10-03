@@ -116,7 +116,7 @@ def _migrate_schema(db_engine):
 def _seed_initial_data(session: Session, models_module):
     """Наполняет базу данных начальными данными, если таблицы пусты."""
     try:
-        # 1. Роли
+        # 1. Роли пользователей
         roles = session.exec(select(models_module.Role)).all()
         if not roles:
             initial_roles = [
@@ -125,22 +125,9 @@ def _seed_initial_data(session: Session, models_module):
             ]
             session.add_all(initial_roles)
             session.commit()
-            print("[DB] Начальные роли успешно добавлены.")
+            print("[DB] Начальные роли пользователей успешно добавлены.")
 
-        # 2. Производители
-        manufacturers = session.exec(select(models_module.Manufacturer)).all()
-        if not manufacturers:
-            initial_manufacturers = [
-                models_module.Manufacturer(id=1, name="Apple"),
-                models_module.Manufacturer(id=2, name="Xiaomi"),
-                models_module.Manufacturer(id=3, name="Samsung"),
-                models_module.Manufacturer(id=4, name="Huawei"),
-            ]
-            session.add_all(initial_manufacturers)
-            session.commit()
-            print("[DB] Начальные производители успешно добавлены.")
-
-        # 3. Статусы заказов
+        # 2. Статусы заказов
         statuses = session.exec(select(models_module.Status)).all()
         if not statuses:
             initial_statuses = [
@@ -154,7 +141,7 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Начальные статусы заказов успешно добавлены.")
 
-        # 4. Категории товаров
+        # 3. Категории товаров
         categories = session.exec(select(models_module.Category)).all()
         if not categories:
             initial_categories = [
@@ -167,7 +154,20 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
             print("[DB] Начальные категории успешно добавлены.")
 
-        # 5. Пользователи (Администратор и демо-клиент)
+        # 4. Производители (бренды)
+        manufacturers = session.exec(select(models_module.Manufacturer)).all()
+        if not manufacturers:
+            initial_manufacturers = [
+                models_module.Manufacturer(id=1, name="Apple"),
+                models_module.Manufacturer(id=2, name="Xiaomi"),
+                models_module.Manufacturer(id=3, name="Samsung"),
+                models_module.Manufacturer(id=4, name="Huawei"),
+            ]
+            session.add_all(initial_manufacturers)
+            session.commit()
+            print("[DB] Начальные производители успешно добавлены.")
+
+        # 5. Пользователи
         admin_user = session.exec(
             select(models_module.User).where(models_module.User.email == "admin@shop.ru")
         ).first()

@@ -66,8 +66,11 @@
           ref="inputRef"
           v-model="inputValue"
           type="text"
+          maxlength="200"
           placeholder="Напишите вопрос..."
           class="chat-input"
+          @keydown="handleSpaceKeydown($event, inputValue, 30)"
+          @input="inputValue = inputValue.replace(/^\s+/, '').replace(/\s{3,}/g, '  ').slice(0, 200)"
         />
         <button type="submit" class="send-btn" :disabled="!inputValue.trim()">
           <Send :size="18" />
@@ -80,6 +83,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 import { MessageSquare, X, Send, Bot } from 'lucide-vue-next'
+import { handleSpaceKeydown } from '../utils/validators.js'
 
 const isOpen = ref(false)
 const inputValue = ref('')
