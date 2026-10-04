@@ -87,8 +87,6 @@
         </div>
       </main>
     </div>
-
-    <ChatBot />
   </div>
 </template>
 
@@ -97,7 +95,6 @@ import { ref, computed } from 'vue'
 import { Search } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
 import ProductCard from '../components/ProductCard.vue'
-import ChatBot from '../components/ChatBot.vue'
 import { store } from '../store.js'
 import { handleSpaceKeydown, sanitizeTextWithSpaces } from '../utils/validators.js'
 

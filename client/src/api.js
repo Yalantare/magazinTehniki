@@ -136,5 +136,19 @@ export const api = {
       throw new Error(err.detail || 'Failed to add review')
     }
     return await res.json()
+  },
+
+  async sendChatMessage(messages) {
+    const res = await fetch(`${BASE_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Ошибка сервера' }))
+      throw new Error(err.detail || 'Не удалось получить ответ')
+    }
+    return await res.json()
   }
 }
+
