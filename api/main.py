@@ -1,9 +1,11 @@
 import os
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Body, Request
+from openai import AsyncOpenAI
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select, col
@@ -949,3 +951,55 @@ def update_order_status_direct(
 def get_statuses(session: Session = Depends(database.get_session)):
     statuses = session.exec(select(models.Status)).all()
     return [{"id": s.id, "title": s.title} for s in statuses]
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+@app.post("/api/chat")
+async def chat_with_ai(request: ChatRequest):
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or api_key == "dummy_key":
+        database._load_env()
+        api_key = os.getenv("OPENAI_API_KEY")
+
+    if not api_key or api_key == "dummy_key":
+        raise HTTPException(
+            status_code=500,
+            detail="Ключ OPENAI_API_KEY не задан в .env файле. Укажите действительный API-ключ."
+        )
+
+    try:
+        base_url = os.getenv("OPENAI_BASE_URL") or None
+        model_name = os.getenv("OPENAI_MODEL") or ("gemini-2.5-flash" if (base_url and "dogai" in base_url) else "gpt-4o-mini")
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        system_prompt = {
+            "role": "system",
+            "content": (
+                "Ты — вежливый и профессиональный эксперт-консультант в интернет-магазине электроники и техники. "
+                "Твоя задача — помогать покупателям с выбором гаджетов, сравнивать их характеристики, "
+                "подсказывать совместимость (например, материнская плата и процессор) и рекомендовать лучшие решения. "
+                "Используй форматирование Markdown (таблицы, списки, выделения) для наглядности. "
+                "Если пользователь задает вопросы не по теме электроники, вежливо возвращай разговор к товарам магазина."
+            )
+        }
+        
+        messages = [system_prompt] + [{"role": m.role, "content": m.content} for m in request.messages]
+
+        response = await client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        reply = response.choices[0].message.content
+        return {"reply": reply}
+
+    except Exception as e:
+        print(f"Ошибка чата OpenAI: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка AI-ассистента: {str(e)}")
