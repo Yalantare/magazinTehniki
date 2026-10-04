@@ -1,0 +1,9 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    "api",
+    ".venv/Lib/site-packages"
+  ],
+  "reportAssignmentType": "none"
+}

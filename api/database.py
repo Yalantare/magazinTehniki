@@ -325,9 +325,17 @@ def init_db(retries: int = 5, delay: float = 2.0):
         sys.path.insert(0, current_dir)
 
     try:
-        import models as models_module
-    except ImportError:
-        from api import models as models_module
+        from . import models as models_module
+    except (ImportError, ValueError):
+        try:
+            import models as models_module
+        except ImportError:
+            from api import models as models_module
+
+    if "api.models" in sys.modules and "models" not in sys.modules:
+        sys.modules["models"] = sys.modules["api.models"]
+    elif "models" in sys.modules and "api.models" not in sys.modules:
+        sys.modules["api.models"] = sys.modules["models"]
 
     for attempt in range(1, retries + 1):
         try:

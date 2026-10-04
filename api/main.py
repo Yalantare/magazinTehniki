@@ -6,11 +6,27 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import database
-import models
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+try:
+    from . import database, models
+except (ImportError, ValueError):
+    import database
+    import models
+
+if "api.models" in sys.modules and "models" not in sys.modules:
+    sys.modules["models"] = sys.modules["api.models"]
+elif "models" in sys.modules and "api.models" not in sys.modules:
+    sys.modules["api.models"] = sys.modules["models"]
+
+if "api.database" in sys.modules and "database" not in sys.modules:
+    sys.modules["database"] = sys.modules["api.database"]
+elif "database" in sys.modules and "api.database" not in sys.modules:
+    sys.modules["api.database"] = sys.modules["database"]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,22 +52,22 @@ def get_or_create_manufacturer(name_or_id, session: Session) -> int:
         return name_or_id
     if not name_or_id:
         first = session.exec(select(models.Manufacturer)).first()
-        if first:
+        if first and first.id is not None:
             return first.id
         mfg = models.Manufacturer(name="Unknown")
         session.add(mfg)
         session.commit()
         session.refresh(mfg)
-        return mfg.id
+        return mfg.id or 0
 
     name = str(name_or_id).strip()
-    mfg = session.exec(select(models.Manufacturer).where(models.Manufacturer.name.ilike(name))).first()
+    mfg = session.exec(select(models.Manufacturer).where(col(models.Manufacturer.name).ilike(name))).first()
     if not mfg:
         mfg = models.Manufacturer(name=name)
         session.add(mfg)
         session.commit()
         session.refresh(mfg)
-    return mfg.id
+    return mfg.id or 0
 
 def get_or_create_role(name_or_id, session: Session) -> int:
     if isinstance(name_or_id, int):
@@ -63,7 +79,7 @@ def get_or_create_role(name_or_id, session: Session) -> int:
         session.add(role)
         session.commit()
         session.refresh(role)
-    return role.id
+    return role.id or 1
 
 def format_user_response(u: models.User, session: Session):
     role = session.get(models.Role, u.role_id) if u.role_id else None
@@ -201,11 +217,11 @@ def get_products(
     if brand:
         stmt = stmt.join(
             models.Manufacturer,
-            models.Product.manufacturer_id == models.Manufacturer.id,
+            col(models.Product.manufacturer_id) == models.Manufacturer.id,
             isouter=True
-        ).where(models.Manufacturer.name.ilike(f"%{brand}%"))
+        ).where(col(models.Manufacturer.name).ilike(f"%{brand}%"))
     if search:
-        stmt = stmt.where(models.Product.title.ilike(f"%{search}%"))
+        stmt = stmt.where(col(models.Product.title).ilike(f"%{search}%"))
     if minPrice is not None:
         stmt = stmt.where(models.Product.price >= minPrice)
     if maxPrice is not None:
@@ -331,7 +347,7 @@ def get_manufacturers(session: Session = Depends(database.get_session)):
 @app.post("/api/manufacturers")
 def create_manufacturer(data: models.ManufacturerCreate, session: Session = Depends(database.get_session)):
     existing = session.exec(
-        select(models.Manufacturer).where(models.Manufacturer.name.ilike(data.name.strip()))
+        select(models.Manufacturer).where(col(models.Manufacturer.name).ilike(data.name.strip()))
     ).first()
     if existing:
         return {"id": existing.id, "name": existing.name}
@@ -419,7 +435,7 @@ def delete_variation(id: int, session: Session = Depends(database.get_session)):
 @app.get("/api/products/{articul}/reviews")
 def get_reviews(articul: int, session: Session = Depends(database.get_session)):
     reviews = session.exec(
-        select(models.Review).where(models.Review.product_id == articul).order_by(models.Review.id.desc())
+        select(models.Review).where(models.Review.product_id == articul).order_by(col(models.Review.id).desc())
     ).all()
     res = []
     for r in reviews:
@@ -674,7 +690,7 @@ def add_to_cart(data: models.AddToCartRequest, session: Session = Depends(databa
         session.add(item)
     else:
         item = models.ReceiptItem(
-            receipt_id=data.receipt_id,
+            receipt_id=receipt.receipt_id or data.receipt_id or 0,
             product_id=data.product_id,
             variation_id=data.variation_id,
             quantity=data.quantity,
@@ -797,7 +813,7 @@ def get_user_orders(user_id: int, session: Session = Depends(database.get_sessio
         select(models.Receipt).where(
             models.Receipt.user_id == user_id,
             models.Receipt.order_status == 1
-        ).order_by(models.Receipt.receipt_id.desc())
+        ).order_by(col(models.Receipt.receipt_id).desc())
     ).all()
     return [format_receipt(o, session) for o in orders]
 
@@ -812,7 +828,7 @@ def get_order_by_id(receipt_id: int, session: Session = Depends(database.get_ses
 @app.get("/api/Receipts/get_all_receipts")
 def get_all_orders(session: Session = Depends(database.get_session)):
     orders = session.exec(
-        select(models.Receipt).order_by(models.Receipt.receipt_id.desc())
+        select(models.Receipt).order_by(col(models.Receipt.receipt_id).desc())
     ).all()
     return [format_receipt(o, session) for o in orders]
 
@@ -881,7 +897,7 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
             session.add(prod)
 
         receipt_item = models.ReceiptItem(
-            receipt_id=order.receipt_id,
+            receipt_id=order.receipt_id or 0,
             product_id=it.product_id,
             variation_id=it.variation_id,
             quantity=it.quantity,
@@ -904,7 +920,7 @@ def update_order_status(receipt_id: int, data: models.StatusUpdate, session: Ses
         raise HTTPException(status_code=404, detail="Заказ не найден")
 
     status = session.get(models.Status, data.status_id)
-    if not status:
+    if not status or status.id is None:
         raise HTTPException(status_code=404, detail="Статус не найден")
 
     order.status_id = status.id

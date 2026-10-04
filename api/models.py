@@ -3,30 +3,35 @@ from sqlmodel import SQLModel, Field
 
 class Role(SQLModel, table=True):
     __tablename__ = "roles"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
 
 class Category(SQLModel, table=True):
     __tablename__ = "categories"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(unique=True, index=True)
 
 class Manufacturer(SQLModel, table=True):
     __tablename__ = "manufacturers"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, index=True)
 
 class Status(SQLModel, table=True):
     __tablename__ = "statuses"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(unique=True)
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
+    __table_args__ = {"extend_existing": True}
 
     user_id: Optional[int] = Field(default=None, primary_key=True)
     role_id: Optional[int] = Field(default=1, foreign_key="roles.id")
@@ -56,6 +61,7 @@ class User(SQLModel, table=True):
 
 class Product(SQLModel, table=True):
     __tablename__ = "products"
+    __table_args__ = {"extend_existing": True}
 
     articul: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
@@ -91,6 +97,7 @@ class Product(SQLModel, table=True):
 
 class ProductVariation(SQLModel, table=True):
     __tablename__ = "product_variations"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     product_id: int = Field(foreign_key="products.articul")
@@ -100,6 +107,7 @@ class ProductVariation(SQLModel, table=True):
 
 class Receipt(SQLModel, table=True):
     __tablename__ = "receipts"
+    __table_args__ = {"extend_existing": True}
 
     receipt_id: Optional[int] = Field(default=None, primary_key=True)
     code: str = Field(default="")
@@ -135,6 +143,7 @@ class Receipt(SQLModel, table=True):
 
 class ReceiptItem(SQLModel, table=True):
     __tablename__ = "receipt_items"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     receipt_id: int = Field(foreign_key="receipts.receipt_id")
@@ -145,13 +154,14 @@ class ReceiptItem(SQLModel, table=True):
 
 class Review(SQLModel, table=True):
     __tablename__ = "reviews"
+    __table_args__ = {"extend_existing": True}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     product_id: int = Field(foreign_key="products.articul")
     rating: int = Field(default=5)
     date: str = Field(default="")
     comment: str = Field(default="")
-    user_id: int = Field(foreign_key="users.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
 
     @property
     def articul(self) -> int:
