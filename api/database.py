@@ -4,7 +4,6 @@ import time
 import shutil
 from sqlmodel import SQLModel, create_engine, Session, select
 
-# Функция загрузки переменных из .env с поддержкой python-dotenv и fallback
 def _load_env():
     possible_paths = [
         os.path.join(os.getcwd(), ".env"),
@@ -36,7 +35,6 @@ def _load_env():
 
 _load_env()
 
-# Параметры подключения
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "root")
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -56,7 +54,6 @@ engine = create_engine(
 )
 
 def _sync_product_images():
-    """Копирует исходные изображения из клиентской папки в api/images при их отсутствии."""
     try:
         api_dir = os.path.dirname(os.path.abspath(__file__))
         images_dir = os.path.join(api_dir, "images")
@@ -70,7 +67,7 @@ def _sync_product_images():
                 if os.path.isfile(src) and not os.path.exists(dst):
                     shutil.copy2(src, dst)
     except Exception as e:
-        print(f"[DB] Ошибка синхронизации изображений: {e}")
+        print(f"Ошибка синхронизации картинок: {e}")
 
 def _migrate_schema(db_engine):
     """Автоматически приводит схему существующих таблиц БД в соответствие с 3NF."""
@@ -114,7 +111,6 @@ def _migrate_schema(db_engine):
         print(f"[DB] Предупреждение при проверке/миграции схемы: {e}")
 
 def _seed_initial_data(session: Session, models_module):
-    """Наполняет базу данных начальными данными, если таблицы пусты."""
     try:
         # 1. Роли пользователей
         roles = session.exec(select(models_module.Role)).all()
@@ -139,7 +135,6 @@ def _seed_initial_data(session: Session, models_module):
             ]
             session.add_all(initial_statuses)
             session.commit()
-            print("[DB] Начальные статусы заказов успешно добавлены.")
 
         # 3. Категории товаров
         categories = session.exec(select(models_module.Category)).all()
@@ -152,7 +147,6 @@ def _seed_initial_data(session: Session, models_module):
             ]
             session.add_all(initial_categories)
             session.commit()
-            print("[DB] Начальные категории успешно добавлены.")
 
         # 4. Производители (бренды)
         manufacturers = session.exec(select(models_module.Manufacturer)).all()
@@ -182,7 +176,6 @@ def _seed_initial_data(session: Session, models_module):
             )
             session.add(admin_user)
             session.commit()
-            print("[DB] Создан администратор по умолчанию (admin@shop.ru / admin).")
 
         demo_user = session.exec(
             select(models_module.User).where(models_module.User.email == "hayrullinrafael2@gmail.com")
@@ -198,7 +191,6 @@ def _seed_initial_data(session: Session, models_module):
             )
             session.add(demo_user)
             session.commit()
-            print("[DB] Создан тестовый пользователь (hayrullinrafael2@gmail.com / password123).")
 
         # 6. Товары и вариации
         products = session.exec(select(models_module.Product)).all()
@@ -289,37 +281,71 @@ def _seed_initial_data(session: Session, models_module):
             session.commit()
 
             initial_variations = [
-                models_module.ProductVariation(id=1, product_id=4, name="128 GB", price=129990.0, stock=4),
-                models_module.ProductVariation(id=2, product_id=4, name="256 GB", price=144990.0, stock=3),
-                models_module.ProductVariation(id=3, product_id=4, name="512 GB", price=169990.0, stock=1),
-                models_module.ProductVariation(id=4, product_id=5, name="256 GB (Изумрудный)", price=75000.0, stock=2),
-                models_module.ProductVariation(id=5, product_id=5, name="512 GB (Изумрудный)", price=85000.0, stock=1),
+                models_module.ProductVariation(id=1, product_id=1, name="41mm (Темная ночь)", price=40000.0, stock=5),
+                models_module.ProductVariation(id=2, product_id=2, name="512 GB (Серый космос)", price=249999.0, stock=5),
+                models_module.ProductVariation(id=3, product_id=3, name="Белый", price=24990.0, stock=30),
+                models_module.ProductVariation(id=4, product_id=4, name="128 GB", price=129990.0, stock=4),
+                models_module.ProductVariation(id=5, product_id=4, name="256 GB", price=144990.0, stock=3),
+                models_module.ProductVariation(id=6, product_id=4, name="512 GB", price=169990.0, stock=1),
+                models_module.ProductVariation(id=7, product_id=5, name="256 GB (Изумрудный)", price=75000.0, stock=2),
+                models_module.ProductVariation(id=8, product_id=5, name="512 GB (Изумрудный)", price=85000.0, stock=1),
+                models_module.ProductVariation(id=9, product_id=6, name="256 GB (Серый титан)", price=119990.0, stock=10),
+                models_module.ProductVariation(id=10, product_id=7, name="Серебристый", price=14990.0, stock=12),
+                models_module.ProductVariation(id=11, product_id=8, name="46mm (Черный)", price=19990.0, stock=7),
             ]
             session.add_all(initial_variations)
             session.commit()
-            print("[DB] Начальные товары и вариации успешно добавлены.")
 
         # 7. Отзывы
         reviews = session.exec(select(models_module.Review)).all()
         if not reviews:
+            existing_articuls = set(session.exec(select(models_module.Product.articul)).all())
             initial_reviews = [
-                models_module.Review(articul=5, user_name="Алексей С.", rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
-                models_module.Review(articul=4, user_name="Артур Г.", rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
-                models_module.Review(articul=3, user_name="Сергей Т.", rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
-                models_module.Review(articul=2, user_name="Владимир П.", rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
-                models_module.Review(articul=1, user_name="Евгений Д.", rating=5, date="01.09.2026", comment="Отличные часы, очень стильные и функциональные! Батарею держат весь день."),
+                r for r in [
+                    models_module.Review(articul=5, user_name="Алексей С.", rating=5, date="02.09.2026", comment="Камера Leica просто невероятная! Цветопередача и детализация на высшем уровне."),
+                    models_module.Review(articul=4, user_name="Артур Г.", rating=5, date="04.09.2026", comment="Титан ощущается намного легче стали. Type-C наконец-то позволяет заряжать одним проводом."),
+                    models_module.Review(articul=3, user_name="Сергей Т.", rating=5, date="05.09.2026", comment="Шумоподавление лучше, чем во второй версии. В метро тишина полная."),
+                    models_module.Review(articul=2, user_name="Владимир П.", rating=5, date="03.09.2026", comment="Рабочая машина мечты. Рендер 4K видео без единого звука вентиляторов."),
+                    models_module.Review(articul=1, user_name="Евгений Д.", rating=5, date="01.09.2026", comment="Отличные часы, очень стильные и функциональные! Батарею держат весь день."),
+                ] if r.articul in existing_articuls
             ]
-            session.add_all(initial_reviews)
-            session.commit()
-            print("[DB] Начальные отзывы добавлены.")
+            if initial_reviews:
+                session.add_all(initial_reviews)
+                session.commit()
 
     except Exception as e:
         session.rollback()
-        print(f"[DB] Ошибка при заполнении начальных данных: {e}")
+        print(f"Ошибка заполнения данных: {e}")
+
+def _migrate_receipt_items():
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            cols = conn.execute(text("SHOW COLUMNS FROM receipt_items LIKE 'product_id'")).fetchall()
+            if cols:
+                fks = conn.execute(text("""
+                    SELECT CONSTRAINT_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_NAME = 'receipt_items'
+                      AND TABLE_SCHEMA = DATABASE()
+                      AND COLUMN_NAME = 'product_id'
+                """)).fetchall()
+                for fk in fks:
+                    try:
+                        conn.execute(text(f"ALTER TABLE receipt_items DROP FOREIGN KEY {fk[0]}"))
+                    except Exception:
+                        pass
+                indexes = conn.execute(text("SHOW INDEX FROM receipt_items WHERE Column_name = 'product_id'")).fetchall()
+                for idx in indexes:
+                    try:
+                        conn.execute(text(f"ALTER TABLE receipt_items DROP INDEX {idx[2]}"))
+                    except Exception:
+                        pass
+                conn.execute(text("ALTER TABLE receipt_items DROP COLUMN product_id"))
+    except Exception:
+        pass
 
 def init_db(retries: int = 5, delay: float = 2.0):
-    """Инициализация базы данных: создание таблиц и добавление начальных данных."""
-    # Импортируем модели так, чтобы они зарегистрировались в метаданных SQLModel
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
@@ -339,27 +365,27 @@ def init_db(retries: int = 5, delay: float = 2.0):
 
     for attempt in range(1, retries + 1):
         try:
-            print(f"[DB] Подключение к базе данных ({DB_HOST}:{DB_PORT}/{DB_NAME}), попытка {attempt}/{retries}...")
+            print(f"Подключение к БД ({DB_HOST}:{DB_PORT}/{DB_NAME})...")
             SQLModel.metadata.create_all(engine)
             _migrate_schema(engine)
             print("[DB] Таблицы базы данных успешно созданы или проверены.")
+            _migrate_receipt_items()
             
             with Session(engine) as session:
                 _seed_initial_data(session, models_module)
 
             _sync_product_images()
-            print("[DB] Инициализация базы данных успешно завершена!")
+            print("База данных готова")
             return True
         except Exception as e:
-            print(f"[DB] Ошибка подключения на попытке {attempt}: {e}")
+            print(f"Ошибка подключения: {e}")
             if attempt < retries:
                 time.sleep(delay)
             else:
-                print("[DB] Внимание: не удалось подключиться к базе данных. Проверьте, запущена ли СУБД MySQL.")
+                print("Не удалось подключиться к базе данных")
                 return False
 
 def get_session():
-    """Генератор сессии базы данных для FastAPI Depends."""
     with Session(engine) as session:
         yield session
 

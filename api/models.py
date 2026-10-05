@@ -147,7 +147,6 @@ class ReceiptItem(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     receipt_id: int = Field(foreign_key="receipts.receipt_id")
-    product_id: int = Field(foreign_key="products.articul")
     variation_id: Optional[int] = Field(default=None, foreign_key="product_variations.id")
     quantity: int = Field(default=1)
     price_at_purchase: float = Field(default=0.0)
@@ -252,7 +251,7 @@ class StockUpdate(SQLModel):
 
 class AddToCartRequest(SQLModel):
     receipt_id: Optional[int] = None
-    product_id: int
+    product_id: Optional[int] = None
     quantity: int = 1
     variation_id: Optional[int] = None
 
@@ -269,7 +268,7 @@ class StatusUpdate(SQLModel):
     status_id: int
 
 class CreateOrderItemRequest(SQLModel):
-    product_id: int
+    product_id: Optional[int] = None
     variation_id: Optional[int] = None
     quantity: int = 1
     price: Optional[float] = None

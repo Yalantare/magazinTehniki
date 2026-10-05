@@ -30,8 +30,6 @@ namespace TehnikiApp.Models
 
         public virtual Categorye? CategoryNavigation { get; set; } = null!;
 
-        public virtual ICollection<ReceiptItem> ReceiptItems { get; set; } = new List<ReceiptItem>();
-
         public virtual ICollection<ProductVariation> ProductVariations { get; set; } = new List<ProductVariation>();
 
 
