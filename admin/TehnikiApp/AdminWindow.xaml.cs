@@ -71,7 +71,7 @@ namespace TehnikiApp
         {
             try
             {
-                var products = await _client.GetFromJsonAsync<List<Product>>("api/Products");
+                var products = await _client.GetFromJsonAsync<List<Product>>("api/products");
                 if (products != null)
                 {
                     _allProducts = products;
@@ -88,7 +88,7 @@ namespace TehnikiApp
         {
             try
             {
-                var receipts = await _client.GetFromJsonAsync<List<Receipt>>("api/Receipts/get_all_receipts");
+                var receipts = await _client.GetFromJsonAsync<List<Receipt>>("api/orders");
                 if (receipts != null)
                 {
                     _allReceipts = receipts.Where(r => r.OrderStatus > 0).ToList(); 
@@ -114,7 +114,7 @@ namespace TehnikiApp
         {
             try
             {
-                var users = await _client.GetFromJsonAsync<List<User>>("api/Users");
+                var users = await _client.GetFromJsonAsync<List<User>>("api/users");
                 if (users != null)
                 {
                     _allUsers = users;
@@ -131,7 +131,7 @@ namespace TehnikiApp
         {
             try
             {
-                var statuses = await _client.GetFromJsonAsync<List<Status>>("api/Receipts/statuses");
+                var statuses = await _client.GetFromJsonAsync<List<Status>>("api/statuses");
                 if (statuses != null && statuses.Count > 0)
                 {
                     StatusesList = statuses;
@@ -160,7 +160,7 @@ namespace TehnikiApp
         {
             try
             {
-                var categories = await _client.GetFromJsonAsync<List<Categorye>>("api/Products/categories");
+                var categories = await _client.GetFromJsonAsync<List<Categorye>>("api/categories");
                 if (categories != null && categories.Count > 0)
                 {
                     _categories = categories;
@@ -435,6 +435,12 @@ namespace TehnikiApp
             }
         }
 
+        private Product? GetReceiptItemProduct(ReceiptItem item)
+        {
+            return item.ProductVariation?.Product
+                ?? _allProducts.FirstOrDefault(p => p.Articul == item.ProductVariation?.ProductId);
+        }
+
         private void UpdateAnalytics()
         {
             if (_allReceipts == null || _allProducts == null || _categories == null) return;
@@ -452,7 +458,7 @@ namespace TehnikiApp
 
             var allItems = filteredReceipts.SelectMany(r => r.ReceiptItems).ToList();
             int totalItemsSold = allItems.Sum(i => i.Quantity);
-            int uniqueItemsSold = allItems.Select(i => i.ProductId).Distinct().Count();
+            int uniqueItemsSold = allItems.Select(i => i.ProductVariation?.ProductId).Where(id => id.HasValue).Distinct().Count();
 
             if (CardPeriodRevenueTxt != null)
                 CardPeriodRevenueTxt.Text = $"{periodRevenue:N0}₽";
@@ -468,11 +474,12 @@ namespace TehnikiApp
                 CardUniqueItemsTxt.Text = $"{uniqueItemsSold} {GetItemsWord(uniqueItemsSold)}";
 
             var categoryRevenue = allItems
-                .Where(i => i.Product != null)
-                .GroupBy(i => i.Product.Category)
+                .Select(i => new { Item = i, Product = GetReceiptItemProduct(i) })
+                .Where(x => x.Product != null)
+                .GroupBy(x => x.Product!.Category)
                 .Select(g => new { 
                     CategoryId = g.Key, 
-                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice) 
+                    Revenue = g.Sum(x => x.Item.Quantity * x.Item.DisplayPrice)
                 })
                 .OrderByDescending(x => x.Revenue)
                 .FirstOrDefault();
@@ -514,13 +521,14 @@ namespace TehnikiApp
             }
 
             var salesByCategory = filteredReceipts.SelectMany(r => r.ReceiptItems)
-                .Where(i => i.Product != null)
-                .GroupBy(i => i.Product.Category)
+                .Select(i => new { Item = i, Product = GetReceiptItemProduct(i) })
+                .Where(x => x.Product != null)
+                .GroupBy(x => x.Product!.Category)
                 .Select(g => new {
                     CategoryId = g.Key,
                     CategoryName = _categories.FirstOrDefault(c => c.Id == g.Key)?.Title ?? "Другие",
-                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice),
-                    Units = g.Sum(i => i.Quantity)
+                    Revenue = g.Sum(x => x.Item.Quantity * x.Item.DisplayPrice),
+                    Units = g.Sum(x => x.Item.Quantity)
                 })
                 .OrderByDescending(x => x.Revenue)
                 .ToList();
@@ -630,14 +638,15 @@ namespace TehnikiApp
             }
 
             var topProducts = allItems
-                .Where(i => i.Product != null)
-                .GroupBy(i => i.ProductId)
+                .Select(i => new { Item = i, Product = GetReceiptItemProduct(i) })
+                .Where(x => x.Product != null)
+                .GroupBy(x => x.Product!.Articul)
                 .Select(g => new {
                     ProductId = g.Key,
                     ProductTitle = g.First().Product?.Title ?? $"Товар #{g.Key}",
                     Manufacturer = g.First().Product?.Manufacturer ?? "",
-                    Units = g.Sum(i => i.Quantity),
-                    Revenue = g.Sum(i => i.Quantity * i.DisplayPrice)
+                    Units = g.Sum(x => x.Item.Quantity),
+                    Revenue = g.Sum(x => x.Item.Quantity * x.Item.DisplayPrice)
                 })
                 .OrderByDescending(x => x.Revenue)
                 .Take(5)
@@ -1416,12 +1425,12 @@ namespace TehnikiApp
 
                     try
                     {
-                        var response = await _client.PutAsJsonAsync($"api/Receipts/update_order_status/{receipt.ReceiptId}", newStatusId);
+                        var response = await _client.PutAsJsonAsync($"api/orders/{receipt.ReceiptId}/status", new { status_id = newStatusId });
                         if (response.IsSuccessStatusCode)
                         {
                             receipt.Status = newStatusId;
                             
-                            var receipts = await _client.GetFromJsonAsync<List<Receipt>>("api/Receipts/get_all_receipts");
+                            var receipts = await _client.GetFromJsonAsync<List<Receipt>>("api/orders");
                             if (receipts != null)
                             {
                                 _allReceipts = receipts.Where(r => r.OrderStatus > 0).ToList();
@@ -1523,7 +1532,7 @@ namespace TehnikiApp
             if (_editingProduct == null) return;
             try
             {
-                var vars = await _client.GetFromJsonAsync<List<ProductVariation>>($"api/Products/{_editingProduct.Articul}/variations");
+                var vars = await _client.GetFromJsonAsync<List<ProductVariation>>($"api/products/{_editingProduct.Articul}/variations");
                 VariationsListBox.ItemsSource = vars;
             }
             catch (Exception ex)
@@ -1566,7 +1575,7 @@ namespace TehnikiApp
 
             try
             {
-                var response = await _client.PostAsJsonAsync("api/Products/variations", newVar);
+                var response = await _client.PostAsJsonAsync($"api/products/{_editingProduct.Articul}/variations", newVar);
                 if (response.IsSuccessStatusCode)
                 {
                     VarNameInput.Text = "";
@@ -1594,7 +1603,7 @@ namespace TehnikiApp
                 {
                     try
                     {
-                        var response = await _client.DeleteAsync($"api/Products/variations/{variationId}");
+                        var response = await _client.DeleteAsync($"api/products/variations/{variationId}");
                         if (response.IsSuccessStatusCode)
                         {
                             LoadVariationsForEditingProduct();
@@ -1670,7 +1679,7 @@ namespace TehnikiApp
             {
                 try
                 {
-                    var response = await _client.DeleteAsync($"api/Products/{prod.Articul}");
+                    var response = await _client.DeleteAsync($"api/products/{prod.Articul}");
                     if (response.IsSuccessStatusCode)
                     {
                         MessageBox.Show("Продукт успешно удален!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1768,7 +1777,7 @@ namespace TehnikiApp
 
                 try
                 {
-                    var response = await _client.PostAsJsonAsync("api/Products", newProduct);
+                    var response = await _client.PostAsJsonAsync("api/products", newProduct);
                     if (response.IsSuccessStatusCode)
                     {
                         MessageBox.Show("Продукт успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1800,7 +1809,7 @@ namespace TehnikiApp
 
                 try
                 {
-                    var response = await _client.PutAsJsonAsync($"api/Products/{_editingProduct.Articul}", _editingProduct);
+                    var response = await _client.PutAsJsonAsync($"api/products/{_editingProduct.Articul}", _editingProduct);
                     if (response.IsSuccessStatusCode)
                     {
                         MessageBox.Show("Изменения успешно сохранены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -276,7 +276,6 @@ export const store = reactive({
         localStorage.setItem('reviews', JSON.stringify(this.reviews))
       }
     } catch (e) {
-      // offline / local fallback
     }
   },
 

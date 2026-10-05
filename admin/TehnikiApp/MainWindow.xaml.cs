@@ -137,7 +137,7 @@ namespace TehnikiApp
 
             try
             {
-                var response = await _client.PostAsync($"api/Users/login?email={Uri.EscapeDataString(email)}&password={Uri.EscapeDataString(password)}", null);
+                var response = await _client.PostAsync($"api/users/login?email={Uri.EscapeDataString(email)}&password={Uri.EscapeDataString(password)}", null);
 
                 if (response.IsSuccessStatusCode)
                 {

@@ -118,22 +118,15 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("receipt_items");
 
-            entity.HasIndex(e => e.ProductId, "fk_items_product");
             entity.HasIndex(e => e.VariationId, "fk_items_variation_idx");
 
             entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
             entity.Property(e => e.ReceiptId).HasColumnName("receipt_id");
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.VariationId).HasColumnName("variation_id");
             entity.Property(e => e.PriceAtPurchase)
                 .HasPrecision(10, 2)
                 .HasColumnName("price_at_purchase");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
-
-            entity.HasOne(d => d.Product).WithMany(p => p.ReceiptItems)
-                .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_items_product");
 
             entity.HasOne(d => d.Receipt).WithMany(p => p.ReceiptItems)
                 .HasForeignKey(d => d.ReceiptId)
