@@ -116,7 +116,7 @@ async def chat_with_ai(request: ChatRequest):
 
         response = await client.chat.completions.create(
             model=model_name,
-            messages=messages,
+            messages=messages,  # type: ignore
             temperature=0.7,
             max_tokens=1000
         )

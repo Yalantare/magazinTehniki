@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
@@ -84,7 +84,7 @@ def get_user_orders(user_id: int, session: Session = Depends(database.get_sessio
         select(models.Receipt).where(
             models.Receipt.user_id == user_id,
             models.Receipt.order_status == 1
-        ).order_by(models.Receipt.receipt_id.desc())
+        ).order_by(col(models.Receipt.receipt_id).desc())
     ).all()
     return [format_receipt(o, session) for o in orders]
 
@@ -98,7 +98,7 @@ def get_order_by_id(receipt_id: int, session: Session = Depends(database.get_ses
 @router.get("/api/orders")
 def get_all_orders(session: Session = Depends(database.get_session)):
     orders = session.exec(
-        select(models.Receipt).order_by(models.Receipt.receipt_id.desc())
+        select(models.Receipt).order_by(col(models.Receipt.receipt_id).desc())
     ).all()
     return [format_receipt(o, session) for o in orders]
 
@@ -157,7 +157,7 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
                 variation = session.exec(
                     select(models.ProductVariation).where(models.ProductVariation.product_id == prod.articul)
                 ).first()
-                if not variation:
+                if not variation and prod.articul is not None:
                     variation = models.ProductVariation(
                         product_id=prod.articul,
                         name="Базовая",
@@ -184,7 +184,7 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
             session.add(prod)
 
         receipt_item = models.ReceiptItem(
-            receipt_id=order.receipt_id,
+            receipt_id=order.receipt_id or 0,
             variation_id=variation.id if variation else None,
             quantity=it.quantity,
             price_at_purchase=item_price or 0.0
@@ -206,7 +206,7 @@ def update_order_status(receipt_id: int, data: models.StatusUpdate, session: Ses
         raise HTTPException(status_code=404, detail="Заказ не найден")
 
     status = session.get(models.Status, data.status_id)
-    if not status:
+    if not status or status.id is None:
         raise HTTPException(status_code=404, detail="Статус не найден")
 
     order.status_id = status.id

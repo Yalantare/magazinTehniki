@@ -56,7 +56,7 @@ def add_to_cart(data: models.AddToCartRequest, session: Session = Depends(databa
     if not product and not var:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
-    if not var and product:
+    if not var and product and product.articul is not None:
         var = session.exec(
             select(models.ProductVariation).where(models.ProductVariation.product_id == product.articul)
         ).first()
@@ -72,6 +72,12 @@ def add_to_cart(data: models.AddToCartRequest, session: Session = Depends(databa
             session.refresh(var)
 
     price = var.price if var else (product.price if product else 0.0)
+
+    if not data.receipt_id:
+        raise HTTPException(status_code=400, detail="ID корзины не указан")
+
+    if not var or var.id is None:
+        raise HTTPException(status_code=404, detail="Вариация товара не найдена")
 
     receipt = session.get(models.Receipt, data.receipt_id)
     if not receipt:

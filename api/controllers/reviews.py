@@ -93,7 +93,7 @@ def add_product_review(articul: int, data: models.ReviewCreate, session: Session
 
 @router.get("/api/reviews")
 def get_all_reviews(session: Session = Depends(database.get_session)):
-    reviews = session.exec(select(models.Review).order_by(models.Review.id.desc())).all()
+    reviews = session.exec(select(models.Review).order_by(col(models.Review.id).desc())).all()
     res = []
     for r in reviews:
         name = r.user_name
