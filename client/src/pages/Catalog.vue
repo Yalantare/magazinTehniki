@@ -28,7 +28,7 @@
         </h3>
         <div class="filter-list">
           <label
-            v-for="brand in store.brands"
+            v-for="brand in availableBrands"
             :key="brand"
             class="filter-item"
           >
@@ -68,6 +68,8 @@
 
           <select v-model="sortOption" class="sort-select">
             <option value="default">Сортировка: По умолчанию</option>
+            <option value="rating-desc">По рейтингу (высокий сначала)</option>
+            <option value="rating-asc">По рейтингу (низкий сначала)</option>
             <option value="price-asc">Цена: по возрастанию</option>
             <option value="price-desc">Цена: по убыванию</option>
             <option value="title-asc">Название: А-Я</option>
@@ -91,12 +93,30 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Search } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
 import ProductCard from '../components/ProductCard.vue'
 import { store } from '../store.js'
 import { handleSpaceKeydown, sanitizeTextWithSpaces } from '../utils/validators.js'
+
+onMounted(async () => {
+  if (store.loadFromApi) {
+    await store.loadFromApi()
+  }
+})
+
+const availableBrands = computed(() => {
+  const set = new Set(store.brands || [])
+  if (store.products && store.products.length > 0) {
+    store.products.forEach(p => {
+      if (p.manufacturer && p.manufacturer.trim()) {
+        set.add(p.manufacturer.trim())
+      }
+    })
+  }
+  return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b))
+})
 
 const selectedCategories = ref([])
 const selectedBrands = ref([])
@@ -145,7 +165,11 @@ const filteredProducts = computed(() => {
     })
   }
 
-  if (sortOption.value === 'price-asc') {
+  if (sortOption.value === 'rating-desc') {
+    list.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+  } else if (sortOption.value === 'rating-asc') {
+    list.sort((a, b) => (a.rating || 0) - (b.rating || 0))
+  } else if (sortOption.value === 'price-asc') {
     list.sort((a, b) => a.price - b.price)
   } else if (sortOption.value === 'price-desc') {
     list.sort((a, b) => b.price - a.price)

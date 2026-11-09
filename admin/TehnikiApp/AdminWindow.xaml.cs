@@ -49,6 +49,8 @@ namespace TehnikiApp
             }
 
             AttachInputValidation();
+            UpdateTabHeaders();
+            UpdateAnalyticsPeriodButtons();
             LoadAllData();
         }
 
@@ -222,16 +224,7 @@ namespace TehnikiApp
                 PanelAnalytics.Visibility = tabName == "Analytics" ? Visibility.Visible : Visibility.Collapsed;
 
                 
-                TabProductsText.Foreground = tabName == "Products" ? ActiveTabBrush : InactiveTabBrush;
-                TabProductsBadge.Foreground = tabName == "Products" ? ActiveTabBrush : InactiveTabBrush;
-                
-                TabSalesText.Foreground = tabName == "Sales" ? ActiveTabBrush : InactiveTabBrush;
-                TabSalesBadge.Foreground = tabName == "Sales" ? ActiveTabBrush : InactiveTabBrush;
-
-                TabUsersText.Foreground = tabName == "Users" ? ActiveTabBrush : InactiveTabBrush;
-                TabUsersBadge.Foreground = tabName == "Users" ? ActiveTabBrush : InactiveTabBrush;
-
-                TabAnalyticsText.Foreground = tabName == "Analytics" ? ActiveTabBrush : InactiveTabBrush;
+                UpdateTabHeaders();
 
                 if (tabName == "Analytics")
                 {
@@ -244,6 +237,40 @@ namespace TehnikiApp
                         UpdateAnalytics();
                     }
                 }
+            }
+        }
+
+        private void UpdateTabHeaders()
+        {
+            var activeBg = (Brush)Application.Current.Resources["ThemeInfoBg"];
+            var activeText = (Brush)Application.Current.Resources["ThemeInfoText"];
+            var inactiveBg = (Brush)Application.Current.Resources["ThemePanelBg"];
+            var inactiveText = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+            bool isProducts = _currentTab == "Products";
+            if (TabProductsText != null)
+            {
+                TabProductsText.Foreground = isProducts ? ActiveTabBrush : InactiveTabBrush;
+                if (TabProductsBadge != null) TabProductsBadge.Foreground = isProducts ? activeText : inactiveText;
+                if (TabProductsBadgeBorder != null) TabProductsBadgeBorder.Background = isProducts ? activeBg : inactiveBg;
+            }
+            bool isSales = _currentTab == "Sales";
+            if (TabSalesText != null)
+            {
+                TabSalesText.Foreground = isSales ? ActiveTabBrush : InactiveTabBrush;
+                if (TabSalesBadge != null) TabSalesBadge.Foreground = isSales ? activeText : inactiveText;
+                if (TabSalesBadgeBorder != null) TabSalesBadgeBorder.Background = isSales ? activeBg : inactiveBg;
+            }
+            bool isUsers = _currentTab == "Users";
+            if (TabUsersText != null)
+            {
+                TabUsersText.Foreground = isUsers ? ActiveTabBrush : InactiveTabBrush;
+                if (TabUsersBadge != null) TabUsersBadge.Foreground = isUsers ? activeText : inactiveText;
+                if (TabUsersBadgeBorder != null) TabUsersBadgeBorder.Background = isUsers ? activeBg : inactiveBg;
+            }
+            if (TabAnalyticsText != null)
+            {
+                TabAnalyticsText.Foreground = _currentTab == "Analytics" ? ActiveTabBrush : InactiveTabBrush;
             }
         }
 
@@ -291,17 +318,7 @@ namespace TehnikiApp
         private void SetAnalyticsPeriod(string periodTag)
         {
             _analyticsPeriod = periodTag;
-
-            var periodButtons = new[] { PeriodAllBtn, PeriodYearBtn, PeriodMonthBtn, Period30Btn, Period7Btn, PeriodCustomBtn };
-            var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
-
-            foreach (var b in periodButtons)
-            {
-                if (b == null) continue;
-                bool isSelected = (string)b.Tag == periodTag;
-                b.Background = isSelected ? _activePeriodBrush : Brushes.Transparent;
-                b.Foreground = isSelected ? Brushes.White : inactiveTextBrush;
-            }
+            UpdateAnalyticsPeriodButtons();
 
             DateTime today = DateTime.Today;
             DateTime start = today.AddDays(-6);
@@ -1463,20 +1480,26 @@ namespace TehnikiApp
             VariationsColumn.Width = new GridLength(0);
             VariationsPanel.Visibility = Visibility.Collapsed;
 
-            ModalNameInput.IsEnabled = true;
+            ModalNameInput.IsReadOnly = false;
             ModalNameInput.Text = "";
-            ModalManufacturerInput.IsEnabled = true;
-            ModalManufacturerInput.Text = "";
-            ModalCategoryCombo.IsEnabled = true;
+            NewManufacturerCheckBox.Visibility = Visibility.Visible;
+            ModalManufacturerCombo.IsHitTestVisible = true;
+            ModalManufacturerInput.IsReadOnly = false;
+            PopulateManufacturerCombo();
+            ModalCategoryCombo.IsHitTestVisible = true;
             ModalCategoryCombo.SelectedIndex = 0;
-            ModalPriceInput.IsEnabled = true;
+            ModalPriceInput.IsReadOnly = false;
             ModalPriceInput.Text = "0,00";
-            ModalStockInput.IsEnabled = true;
+            ModalStockInput.IsReadOnly = false;
             ModalStockInput.Text = "0";
-            ModalImageInput.IsEnabled = true;
+            ModalImageInput.IsReadOnly = false;
             ModalImageInput.Text = "";
-            ModalDescInput.IsEnabled = true;
+            ModalDescInput.IsReadOnly = false;
             ModalDescInput.Text = "";
+
+            if (SpinnerMinusBtn != null) SpinnerMinusBtn.Visibility = Visibility.Visible;
+            if (SpinnerPlusBtn != null) SpinnerPlusBtn.Visibility = Visibility.Visible;
+            if (BrowseImageBtn != null) BrowseImageBtn.Visibility = Visibility.Visible;
 
             ModalOverlay.Visibility = Visibility.Visible;
         }
@@ -1500,27 +1523,33 @@ namespace TehnikiApp
             ModalSaveBtnText.Text = "Сохранить изменения";
             ModalSaveBtn.Visibility = Visibility.Visible;
 
-            ProductModalBorder.Width = 925;
-            VariationsColumn.Width = new GridLength(400);
+            ProductModalBorder.Width = 980;
+            VariationsColumn.Width = new GridLength(420);
             VariationsPanel.Visibility = Visibility.Visible;
             VarNameInput.Text = "";
             VarPriceInput.Text = "";
             VarStockInput.Text = "0";
 
-            ModalNameInput.IsEnabled = true;
+            ModalNameInput.IsReadOnly = false;
             ModalNameInput.Text = prod.Title;
-            ModalManufacturerInput.IsEnabled = true;
-            ModalManufacturerInput.Text = prod.Manufacturer;
-            ModalCategoryCombo.IsEnabled = true;
+            NewManufacturerCheckBox.Visibility = Visibility.Visible;
+            ModalManufacturerCombo.IsHitTestVisible = true;
+            ModalManufacturerInput.IsReadOnly = false;
+            PopulateManufacturerCombo(prod.Manufacturer);
+            ModalCategoryCombo.IsHitTestVisible = true;
             ModalCategoryCombo.SelectedValue = prod.Category;
-            ModalPriceInput.IsEnabled = true;
+            ModalPriceInput.IsReadOnly = false;
             ModalPriceInput.Text = $"{prod.Price:F2}";
-            ModalStockInput.IsEnabled = true;
+            ModalStockInput.IsReadOnly = false;
             ModalStockInput.Text = prod.Stock.ToString();
-            ModalImageInput.IsEnabled = true;
+            ModalImageInput.IsReadOnly = false;
             ModalImageInput.Text = prod.Photo;
-            ModalDescInput.IsEnabled = true;
+            ModalDescInput.IsReadOnly = false;
             ModalDescInput.Text = prod.Description;
+
+            if (SpinnerMinusBtn != null) SpinnerMinusBtn.Visibility = Visibility.Visible;
+            if (SpinnerPlusBtn != null) SpinnerPlusBtn.Visibility = Visibility.Visible;
+            if (BrowseImageBtn != null) BrowseImageBtn.Visibility = Visibility.Visible;
 
             LoadVariationsForEditingProduct();
 
@@ -1642,22 +1671,50 @@ namespace TehnikiApp
             VariationsColumn.Width = new GridLength(0);
             VariationsPanel.Visibility = Visibility.Collapsed;
 
-            ModalNameInput.IsEnabled = false;
+            ModalNameInput.IsReadOnly = true;
             ModalNameInput.Text = prod.Title;
-            ModalManufacturerInput.IsEnabled = false;
-            ModalManufacturerInput.Text = prod.Manufacturer;
-            ModalCategoryCombo.IsEnabled = false;
+            NewManufacturerCheckBox.Visibility = Visibility.Collapsed;
+            ModalManufacturerCombo.IsHitTestVisible = false;
+            ModalManufacturerInput.IsReadOnly = true;
+            PopulateManufacturerCombo(prod.Manufacturer);
+            ModalCategoryCombo.IsHitTestVisible = false;
             ModalCategoryCombo.SelectedValue = prod.Category;
-            ModalPriceInput.IsEnabled = false;
+            ModalPriceInput.IsReadOnly = true;
             ModalPriceInput.Text = $"{prod.Price:F2}";
-            ModalStockInput.IsEnabled = false;
+            ModalStockInput.IsReadOnly = true;
             ModalStockInput.Text = prod.Stock.ToString();
-            ModalImageInput.IsEnabled = false;
+            ModalImageInput.IsReadOnly = true;
             ModalImageInput.Text = prod.Photo;
-            ModalDescInput.IsEnabled = false;
+            ModalDescInput.IsReadOnly = true;
             ModalDescInput.Text = prod.Description;
 
+            if (SpinnerMinusBtn != null) SpinnerMinusBtn.Visibility = Visibility.Collapsed;
+            if (SpinnerPlusBtn != null) SpinnerPlusBtn.Visibility = Visibility.Collapsed;
+            if (BrowseImageBtn != null) BrowseImageBtn.Visibility = Visibility.Collapsed;
+
             ModalOverlay.Visibility = Visibility.Visible;
+        }
+
+        private void BrowseImageBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Выберите фотографию товара",
+                    Filter = "Изображения (*.png;*.jpg;*.jpeg;*.webp;*.gif)|*.png;*.jpg;*.jpeg;*.webp;*.gif|Все файлы (*.*)|*.*",
+                    CheckFileExists = true
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    ModalImageInput.Text = dlg.FileName;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось открыть проводник: " + ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private async void DeleteProductBtn_Click(object sender, RoutedEventArgs e)
@@ -1732,15 +1789,165 @@ namespace TehnikiApp
         }
 
         
+        private bool _isUpdatingManufacturer = false;
+
+        private void PopulateManufacturerCombo(string? selectedManufacturer = null)
+        {
+            _isUpdatingManufacturer = true;
+            try
+            {
+                var existingManufacturers = _allProducts
+                    .Select(p => p.Manufacturer?.Trim())
+                    .Where(m => !string.IsNullOrEmpty(m))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(m => m)
+                    .ToList();
+
+                ModalManufacturerCombo.Items.Clear();
+                foreach (var mfg in existingManufacturers)
+                {
+                    ModalManufacturerCombo.Items.Add(mfg);
+                }
+                ModalManufacturerCombo.Items.Add("+ Новое (ввести вручную)");
+
+                if (!string.IsNullOrEmpty(selectedManufacturer))
+                {
+                    string? match = existingManufacturers.FirstOrDefault(m => string.Equals(m, selectedManufacturer.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                    {
+                        ModalManufacturerCombo.SelectedItem = match;
+                        NewManufacturerCheckBox.IsChecked = false;
+                        NewManufacturerPanel.Visibility = Visibility.Collapsed;
+                        ModalManufacturerInput.Text = match;
+                    }
+                    else
+                    {
+                        ModalManufacturerCombo.SelectedItem = "+ Новое (ввести вручную)";
+                        NewManufacturerCheckBox.IsChecked = true;
+                        NewManufacturerPanel.Visibility = Visibility.Visible;
+                        ModalManufacturerInput.Text = selectedManufacturer.Trim();
+                    }
+                }
+                else
+                {
+                    if (ModalManufacturerCombo.Items.Count > 1)
+                    {
+                        ModalManufacturerCombo.SelectedIndex = 0;
+                    }
+                    NewManufacturerCheckBox.IsChecked = false;
+                    NewManufacturerPanel.Visibility = Visibility.Collapsed;
+                    ModalManufacturerInput.Text = "";
+                }
+            }
+            finally
+            {
+                _isUpdatingManufacturer = false;
+            }
+        }
+
+        private void NewManufacturerCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdatingManufacturer) return;
+            _isUpdatingManufacturer = true;
+            try
+            {
+                bool isNew = NewManufacturerCheckBox.IsChecked == true;
+                if (isNew)
+                {
+                    NewManufacturerPanel.Visibility = Visibility.Visible;
+                    ModalManufacturerCombo.SelectedItem = "+ Новое (ввести вручную)";
+                    ModalManufacturerInput.Focus();
+                }
+                else
+                {
+                    NewManufacturerPanel.Visibility = Visibility.Collapsed;
+                    if (ModalManufacturerCombo.SelectedItem != null && 
+                        ModalManufacturerCombo.SelectedItem.ToString() == "+ Новое (ввести вручную)")
+                    {
+                        if (ModalManufacturerCombo.Items.Count > 1)
+                            ModalManufacturerCombo.SelectedIndex = 0;
+                    }
+                    ModalManufacturerInput.Text = "";
+                }
+            }
+            finally
+            {
+                _isUpdatingManufacturer = false;
+            }
+        }
+
+        private void ModalManufacturerCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingManufacturer) return;
+            _isUpdatingManufacturer = true;
+            try
+            {
+                string? selected = ModalManufacturerCombo.SelectedItem?.ToString();
+                if (selected == "+ Новое (ввести вручную)")
+                {
+                    NewManufacturerCheckBox.IsChecked = true;
+                    NewManufacturerPanel.Visibility = Visibility.Visible;
+                    ModalManufacturerInput.Focus();
+                }
+                else
+                {
+                    NewManufacturerCheckBox.IsChecked = false;
+                    NewManufacturerPanel.Visibility = Visibility.Collapsed;
+                    if (selected != null)
+                    {
+                        ModalManufacturerInput.Text = selected;
+                    }
+                }
+            }
+            finally
+            {
+                _isUpdatingManufacturer = false;
+            }
+        }
+
         private async void SaveModalProductBtn_Click(object sender, RoutedEventArgs e)
         {
-            
             string title = ModalNameInput.Text.Trim();
-            string manufacturer = ModalManufacturerInput.Text.Trim();
+            
+            string manufacturer = "";
+            bool isNewMfg = NewManufacturerCheckBox.IsChecked == true || 
+                (ModalManufacturerCombo.SelectedItem != null && ModalManufacturerCombo.SelectedItem.ToString() == "+ Новое (ввести вручную)");
+
+            if (isNewMfg)
+            {
+                manufacturer = ModalManufacturerInput.Text.Trim();
+                if (string.IsNullOrEmpty(manufacturer))
+                {
+                    MessageBox.Show("Поле 'Новый производитель' обязательно для заполнения!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    ModalManufacturerInput.Focus();
+                    return;
+                }
+            }
+            else
+            {
+                if (ModalManufacturerCombo.SelectedItem == null || string.IsNullOrWhiteSpace(ModalManufacturerCombo.SelectedItem.ToString()))
+                {
+                    MessageBox.Show("Выберите производителя из списка или укажите нового!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                manufacturer = ModalManufacturerCombo.SelectedItem.ToString()!;
+            }
             
             if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(manufacturer) || ModalCategoryCombo.SelectedValue == null)
             {
                 MessageBox.Show("Заполните обязательные поля (*)!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Проверка на дубликаты товаров (не может быть одинаковых товаров)
+            bool isDuplicate = _allProducts.Any(p => 
+                p.Title != null && p.Title.Trim().Equals(title, StringComparison.OrdinalIgnoreCase) && 
+                (_editingProduct == null || p.Articul != _editingProduct.Articul));
+
+            if (isDuplicate)
+            {
+                MessageBox.Show("Товар с таким названием уже существует!", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ModalNameInput.Focus();
                 return;
             }
 
@@ -1845,9 +2052,25 @@ namespace TehnikiApp
         {
             App.SetTheme(!App.IsLightTheme);
             UpdateThemeIcon();
+            UpdateTabHeaders();
+            UpdateAnalyticsPeriodButtons();
             if (_currentTab == "Analytics")
             {
                 UpdateAnalytics();
+            }
+        }
+
+        private void UpdateAnalyticsPeriodButtons()
+        {
+            var periodButtons = new[] { PeriodAllBtn, PeriodYearBtn, PeriodMonthBtn, Period30Btn, Period7Btn, PeriodCustomBtn };
+            var inactiveTextBrush = (Brush)Application.Current.Resources["ThemeTextSecondary"];
+
+            foreach (var b in periodButtons)
+            {
+                if (b == null) continue;
+                bool isSelected = (string)b.Tag == _analyticsPeriod;
+                b.Background = isSelected ? _activePeriodBrush : Brushes.Transparent;
+                b.Foreground = isSelected ? Brushes.White : inactiveTextBrush;
             }
         }
 

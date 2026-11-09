@@ -37,7 +37,10 @@
                 :style="{ backgroundColor: isAvailable ? '#10B981' : '#EF4444' }"
               />
               <span :style="{ color: isAvailable ? '#10B981' : '#EF4444' }">
-                {{ isAvailable ? 'В наличии' : 'Нет в наличии' }}
+                {{ isAvailable ? `В наличии: ${currentStock} шт.` : 'Нет в наличии' }}
+              </span>
+              <span v-if="inCartCount > 0" class="in-cart-indicator">
+                (в корзине: {{ inCartCount }} шт.)
               </span>
             </div>
 
@@ -67,7 +70,7 @@
                 v-for="variation in product.productVariations"
                 :key="variation.id"
                 :class="['variation-card', selectedVariation?.id === variation.id ? 'variation-card-active' : '']"
-                @click="selectedVariation = variation; quantity = 1"
+                @click="selectedVariation = variation; quantity = 1; errorMsg = ''"
               >
                 <div class="variation-name">{{ variation.name }}</div>
                 <div class="variation-price">{{ variation.price.toLocaleString('ru-RU') }} ₽</div>
@@ -80,7 +83,7 @@
               <button
                 class="qty-btn"
                 :disabled="quantity <= 1 || !isAvailable"
-                @click="quantity > 1 ? quantity-- : null"
+                @click="decreaseQuantity"
               >
                 -
               </button>
@@ -89,8 +92,8 @@
               <div class="qty-divider" />
               <button
                 class="qty-btn"
-                :disabled="quantity >= currentStock || !isAvailable"
-                @click="quantity < currentStock ? quantity++ : null"
+                :disabled="quantity >= remainingStock || !isAvailable"
+                @click="increaseQuantity"
               >
                 +
               </button>
@@ -98,16 +101,21 @@
 
             <button
               class="add-to-cart-btn"
-              :disabled="!isAvailable"
+              :disabled="!isAvailable || remainingStock <= 0"
               @click="add"
             >
-              {{ isAvailable ? 'Добавить в корзину' : 'Нет в наличии' }}
+              {{ !isAvailable ? 'Нет в наличии' : (remainingStock <= 0 ? 'Все в корзине' : 'Добавить в корзину') }}
             </button>
           </div>
 
           <div v-if="successMsg" class="success-notice">
             <Check :size="18" />
             {{ successMsg }}
+          </div>
+
+          <div v-if="errorMsg" class="error-notice">
+            <AlertCircle :size="18" />
+            <span>{{ errorMsg }}</span>
           </div>
         </div>
       </div>
@@ -243,7 +251,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Check, Star, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { ArrowLeft, Check, AlertCircle, Star, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
 import { handleSpaceKeydown, sanitizeName } from '../utils/validators.js'
@@ -273,10 +281,18 @@ watch(() => route.params.id, (newId) => {
     const p = store.products.find(x => String(x.articul) === String(newId))
     selectedVariation.value = p?.productVariations?.length ? p.productVariations[0] : null
     quantity.value = 1
+    errorMsg.value = ''
+    successMsg.value = ''
     if (p?.articul) {
       store.loadReviews(p.articul)
     }
   }
+})
+
+watch(selectedVariation, () => {
+  quantity.value = 1
+  errorMsg.value = ''
+  successMsg.value = ''
 })
 
 onMounted(() => {
@@ -287,6 +303,8 @@ onMounted(() => {
 
 const quantity = ref(1)
 const successMsg = ref('')
+const errorMsg = ref('')
+let errorTimeout = null
 
 const isFormOpen = ref(false)
 const ratingScore = ref(5)
@@ -306,6 +324,15 @@ const isAvailable = computed(() => {
   return currentStock.value > 0
 })
 
+const inCartCount = computed(() => {
+  if (!product.value) return 0
+  return store.getQuantityInCart(product.value.articul, selectedVariation.value?.id)
+})
+
+const remainingStock = computed(() => {
+  return Math.max(0, currentStock.value - inCartCount.value)
+})
+
 const ratingInfo = computed(() => {
   if (!product.value) return { rating: 5, count: 0 }
   return store.getRating(product.value.articul)
@@ -316,13 +343,65 @@ const reviewsList = computed(() => {
   return store.getReviews(product.value.articul)
 })
 
+function decreaseQuantity() {
+  if (quantity.value > 1) {
+    quantity.value--
+    errorMsg.value = ''
+  }
+}
+
+function increaseQuantity() {
+  if (remainingStock.value <= 0) {
+    const msg = `Нельзя добавить больше: все доступные товары (${currentStock.value} шт.) уже в вашей корзине!`
+    errorMsg.value = msg
+    store.notify({ title: 'Ограничение по складу', message: msg, type: 'warning' })
+    return
+  }
+  if (quantity.value >= remainingStock.value) {
+    const msg = `Нельзя добавить больше ${remainingStock.value} шт.: на складе всего ${currentStock.value} шт., а в корзине уже ${inCartCount.value} шт.`
+    errorMsg.value = msg
+    store.notify({ title: 'Ограничение по складу', message: msg, type: 'warning' })
+    return
+  }
+  quantity.value++
+  errorMsg.value = ''
+}
+
 function add() {
   if (!product.value || !isAvailable.value) return
-  store.addToCart(product.value, selectedVariation.value, quantity.value)
-  successMsg.value = 'Добавлено в корзину: ' + quantity.value + ' шт.'
-  setTimeout(() => {
+
+  if (remainingStock.value <= 0) {
+    const msg = `Нельзя добавить столько товара: все ${currentStock.value} шт. со склада уже в вашей корзине!`
+    errorMsg.value = msg
     successMsg.value = ''
-  }, 3000)
+    store.notify({ title: 'Ограничение по складу', message: msg, type: 'warning' })
+    return
+  }
+
+  if (quantity.value > remainingStock.value) {
+    const msg = `На складе нельзя добавить столько товара, сколько нет на складе! Доступно: ${remainingStock.value} шт. (в корзине уже: ${inCartCount.value} шт., на складе: ${currentStock.value} шт.)`
+    errorMsg.value = msg
+    successMsg.value = ''
+    store.notify({ title: 'Ограничение по складу', message: msg, type: 'warning' })
+    return
+  }
+
+  const res = store.addToCart(product.value, selectedVariation.value, quantity.value)
+  if (res.success) {
+    successMsg.value = 'Добавлено в корзину: ' + quantity.value + ' шт.'
+    errorMsg.value = ''
+    quantity.value = 1
+    setTimeout(() => {
+      successMsg.value = ''
+    }, 3000)
+  } else {
+    errorMsg.value = res.message || 'На складе недостаточно товара'
+    successMsg.value = ''
+    if (errorTimeout) clearTimeout(errorTimeout)
+    errorTimeout = setTimeout(() => {
+      errorMsg.value = ''
+    }, 5000)
+  }
 }
 
 async function sendReview() {
@@ -638,6 +717,28 @@ async function sendReview() {
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
+}
+
+.error-notice {
+  margin-top: 15px;
+  background-color: var(--theme-danger-bg);
+  color: var(--theme-danger);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  animation: shake 0.35s ease;
+}
+
+.in-cart-indicator {
+  color: #60A5FA;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 6px;
 }
 
 .reviews-section {

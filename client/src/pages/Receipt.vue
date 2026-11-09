@@ -163,7 +163,7 @@ const formattedDate = computed(() => {
   if (!receipt.value || !receipt.value.dateTime) return ''
   const d = new Date(receipt.value.dateTime)
   if (isNaN(d.getTime())) return receipt.value.dateTime
-  return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) + ', ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 })
 
 function printReceipt() {
