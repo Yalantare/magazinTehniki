@@ -5,7 +5,12 @@
         class="availability-indicator"
         :style="{ backgroundColor: availabilityColor }"
       />
-      <span :style="{ color: availabilityColor }">{{ availabilityText }}</span>
+      <span :style="{ color: availabilityColor }">
+        {{ isAvailable ? `В наличии: ${product.stock} шт.` : 'Нет в наличии' }}
+      </span>
+      <span v-if="inCartCount > 0" class="in-cart-pill">
+        в корзине: {{ inCartCount }}
+      </span>
     </div>
 
     <div class="image-wrapper">
@@ -36,17 +41,18 @@
       <span class="price">{{ formatPrice(product.price) }}</span>
       <button
         class="add-btn"
+        :class="{ 'btn-error': buttonStatus === 'error', 'btn-success': buttonStatus === 'success' }"
         :disabled="!isAvailable"
         @click="handleAddClick"
       >
-        {{ isAvailable ? 'Добавить' : 'Нет на складе' }}
+        {{ isAvailable ? buttonText : 'Нет на складе' }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Star } from 'lucide-vue-next'
 import { store } from '../store.js'
@@ -59,6 +65,9 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const buttonText = ref('Добавить')
+const buttonStatus = ref('')
+let statusTimeout = null
 
 const ratingInfo = computed(() => {
   return store.getRating(props.product.articul)
@@ -68,12 +77,12 @@ const isAvailable = computed(() => {
   return props.product.stock > 0
 })
 
-const availabilityColor = computed(() => {
-  return isAvailable.value ? '#10B981' : '#EF4444'
+const inCartCount = computed(() => {
+  return store.getQuantityInCart(props.product.articul)
 })
 
-const availabilityText = computed(() => {
-  return isAvailable.value ? 'В наличии' : 'Нет в наличии'
+const availabilityColor = computed(() => {
+  return isAvailable.value ? '#10B981' : '#EF4444'
 })
 
 const formatPrice = (price) => {
@@ -97,7 +106,24 @@ const handleAddClick = (e) => {
     return
   }
 
-  store.addToCart(props.product)
+  const res = store.addToCart(props.product)
+  if (statusTimeout) clearTimeout(statusTimeout)
+
+  if (!res.success) {
+    buttonStatus.value = 'error'
+    buttonText.value = 'Лимит склада'
+    statusTimeout = setTimeout(() => {
+      buttonStatus.value = ''
+      buttonText.value = 'Добавить'
+    }, 2000)
+  } else {
+    buttonStatus.value = 'success'
+    buttonText.value = 'Добавлено ✓'
+    statusTimeout = setTimeout(() => {
+      buttonStatus.value = ''
+      buttonText.value = 'Добавить'
+    }, 1200)
+  }
 }
 </script>
 
@@ -248,5 +274,31 @@ const handleAddClick = (e) => {
   color: var(--theme-text-muted);
   cursor: not-allowed;
   border: 1px solid var(--theme-border);
+}
+
+.add-btn.btn-error {
+  background-color: var(--theme-danger) !important;
+  animation: shake 0.35s ease;
+}
+
+.add-btn.btn-success {
+  background-color: var(--theme-success) !important;
+}
+
+.in-cart-pill {
+  background-color: rgba(37, 99, 235, 0.25);
+  color: #60A5FA;
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
 }
 </style>

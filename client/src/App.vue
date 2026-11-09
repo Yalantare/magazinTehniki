@@ -2,6 +2,7 @@
   <div class="app-container">
     <router-view />
     <ChatWidget v-if="showChat" />
+    <ToastNotification />
   </div>
 </template>
 
@@ -10,6 +11,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { store } from './store.js'
 import ChatWidget from './components/ChatWidget.vue'
+import ToastNotification from './components/ToastNotification.vue'
 
 const route = useRoute()
 

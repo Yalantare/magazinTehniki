@@ -126,6 +126,13 @@ def get_product(articul: int, session: Session = Depends(database.get_session)):
 
 @router.post("/api/products")
 def create_product(data: models.ProductCreate, session: Session = Depends(database.get_session)):
+    # Проверка на существование товара с таким же названием
+    existing = session.exec(
+        select(models.Product).where(col(models.Product.title).ilike(data.title.strip()))
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Товар с таким названием уже существует")
+
     mfg_id = data.manufacturer_id
     if not mfg_id and data.manufacturer:
         mfg_id = get_or_create_manufacturer(data.manufacturer, session)
@@ -153,6 +160,16 @@ def update_product(articul: int, data: models.ProductUpdate, session: Session = 
     product = session.get(models.Product, articul)
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
+
+    if data.title is not None and data.title.strip().lower() != product.title.strip().lower():
+        existing = session.exec(
+            select(models.Product).where(
+                col(models.Product.title).ilike(data.title.strip()),
+                models.Product.articul != articul
+            )
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Товар с таким названием уже существует")
 
     if data.title is not None:
         product.title = data.title

@@ -181,7 +181,7 @@
                 <div class="order-card-header">
                   <div>
                     <span class="order-code">{{ order.code }}</span>
-                    <span class="order-date">{{ order.dateTime ? new Date(order.dateTime).toLocaleDateString('ru-RU') : '' }}</span>
+                    <span class="order-date">{{ formatOrderDate(order.dateTime) }}</span>
                   </div>
                   <span class="order-status-tag">{{ order.statusTitle }}</span>
                 </div>
@@ -268,6 +268,13 @@ const totalSpent = computed(() => {
   }
   return sum
 })
+
+function formatOrderDate(dateTime) {
+  if (!dateTime) return ''
+  const d = new Date(dateTime)
+  if (isNaN(d.getTime())) return dateTime
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+}
 
 function startEdit() {
   profileError.value = ''

@@ -90,6 +90,14 @@ def add_to_cart(data: models.AddToCartRequest, session: Session = Depends(databa
         )
     ).first()
 
+    available_stock = var.stock if var.stock is not None else (product.stock if product and product.stock is not None else 0)
+    current_in_cart = item.quantity if item else 0
+    if current_in_cart + data.quantity > available_stock:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Нельзя добавить столько товара, сколько нет на складе. В наличии: {available_stock} шт., в корзине: {current_in_cart} шт."
+        )
+
     if item:
         item.quantity += data.quantity
         item.price_at_purchase = price
@@ -140,6 +148,15 @@ def update_cart_quantity(
 
     if not item:
         raise HTTPException(status_code=404, detail="Товар в корзине не найден")
+
+    if item.variation_id:
+        v = session.get(models.ProductVariation, item.variation_id)
+        stock = v.stock if v and v.stock is not None else 0
+        if quantity > stock:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Нельзя установить количество больше, чем есть на складе. В наличии: {stock} шт."
+            )
 
     item.quantity = quantity
     session.add(item)

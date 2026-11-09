@@ -78,6 +78,14 @@ const handleDecrease = () => {
 }
 
 const handleIncrease = () => {
+  if (props.item.quantity >= props.item.displayStock) {
+    store.notify({
+      title: 'Ограничение по складу',
+      message: `Нельзя добавить больше товара, чем есть на складе! В наличии всего: ${props.item.displayStock} шт.`,
+      type: 'warning'
+    })
+    return
+  }
   store.updateQuantity(props.item.id, props.item.quantity + 1)
 }
 </script>

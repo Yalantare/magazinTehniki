@@ -9,6 +9,7 @@ export const store = reactive({
   cart: JSON.parse(localStorage.getItem('cart')) || [],
   orders: JSON.parse(localStorage.getItem('orders')) || orders,
   reviews: JSON.parse(localStorage.getItem('reviews')) || reviews,
+  notifications: [],
   products,
   categories,
   brands,
@@ -26,6 +27,11 @@ export const store = reactive({
       const brs = await api.getBrands()
       if (Array.isArray(brs) && brs.length > 0) {
         this.brands = brs
+      }
+      if (Array.isArray(prods)) {
+        const prodBrands = prods.map(p => p.manufacturer).filter(Boolean)
+        const combined = Array.from(new Set([...(this.brands || []), ...prodBrands])).sort((a, b) => a.localeCompare(b))
+        this.brands = combined
       }
       if (this.user && this.user.userId) {
         await this.loadOrders()
@@ -157,30 +163,114 @@ export const store = reactive({
     return this.getCartSubtotal() + this.getDelivery()
   },
 
-  addToCart(product, variation = null, quantity = 1) {
+  notify(content, type = 'info', duration = 4000) {
+    const id = Date.now() + Math.random()
+    let toast = { id, type, duration }
+    if (typeof content === 'string') {
+      toast.message = content
+    } else if (typeof content === 'object' && content !== null) {
+      toast = { ...toast, ...content, id }
+    }
+    this.notifications.push(toast)
+    if (duration > 0) {
+      setTimeout(() => {
+        this.removeNotification(id)
+      }, duration)
+    }
+    return id
+  },
+
+  removeNotification(id) {
+    this.notifications = this.notifications.filter(n => n.id !== id)
+  },
+
+  getQuantityInCart(articul, variationId = null) {
+    const key = variationId ? `${articul}-${variationId}` : `${articul}`
+    const item = this.cart.find(it => it.id === key)
+    return item ? item.quantity : 0
+  },
+
+  addToCart(product, variation = null, quantity = 1, silent = false) {
+    if (!product) return { success: false, reason: 'no_product' }
+
     const key = variation ? `${product.articul}-${variation.id}` : `${product.articul}`
     const price = variation ? variation.price : product.price
-    const stock = variation ? variation.stock : product.stock
+    const stock = Number(variation ? (variation.stock ?? 0) : (product.stock ?? 0))
+    const title = product.title + (variation ? ` (${variation.name})` : '')
 
-    for (let i = 0; i < this.cart.length; i++) {
-      if (this.cart[i].id === key) {
-        if (this.cart[i].quantity + quantity <= stock) {
-          this.cart[i].quantity += quantity
-        }
-        localStorage.setItem('cart', JSON.stringify(this.cart))
-        return
+    if (stock <= 0) {
+      const message = `Товара «${title}» нет в наличии на складе.`
+      if (!silent) {
+        this.notify({
+          title: 'Нет на складе',
+          message,
+          type: 'warning'
+        })
+      }
+      return { success: false, reason: 'out_of_stock', stock: 0, inCart: 0, available: 0, message }
+    }
+
+    const existingIndex = this.cart.findIndex(item => item.id === key)
+    const currentInCart = existingIndex >= 0 ? this.cart[existingIndex].quantity : 0
+
+    if (currentInCart + quantity > stock) {
+      const remaining = Math.max(0, stock - currentInCart)
+      let message = ''
+      if (currentInCart >= stock) {
+        message = `Нельзя добавить больше товара, чем есть на складе! В наличии: ${stock} шт., и все они уже в вашей корзине.`
+      } else {
+        message = `Нельзя добавить столько товара, сколько нет на складе! Доступно еще: ${remaining} шт. (в корзине: ${currentInCart} шт., на складе: ${stock} шт.)`
+      }
+      if (!silent) {
+        this.notify({
+          title: 'Ограничение по складу',
+          message,
+          type: 'warning'
+        })
+      }
+      return {
+        success: false,
+        reason: 'stock_exceeded',
+        stock,
+        inCart: currentInCart,
+        available: remaining,
+        message
       }
     }
 
-    this.cart.push({
-      id: key,
-      product,
-      productVariation: variation,
-      quantity: Math.min(stock, quantity),
-      displayPrice: price,
-      displayStock: stock
-    })
+    if (existingIndex >= 0) {
+      this.cart[existingIndex].quantity += quantity
+      this.cart[existingIndex].displayStock = stock
+      this.cart[existingIndex].displayPrice = price
+    } else {
+      this.cart.push({
+        id: key,
+        product,
+        productVariation: variation,
+        quantity,
+        displayPrice: price,
+        displayStock: stock
+      })
+    }
+
     localStorage.setItem('cart', JSON.stringify(this.cart))
+
+    if (!silent) {
+      this.notify({
+        title: 'Корзина',
+        message: `Товар «${title}» добавлен в корзину (${quantity} шт.)`,
+        type: 'success',
+        duration: 2500
+      })
+    }
+
+    return {
+      success: true,
+      addedQuantity: quantity,
+      inCart: currentInCart + quantity,
+      stock,
+      message: 'Товар добавлен в корзину'
+    }
   },
 
   removeFromCart(id) {
@@ -191,15 +281,26 @@ export const store = reactive({
   updateQuantity(id, quantity) {
     if (quantity <= 0) {
       this.removeFromCart(id)
-      return
+      return true
     }
     for (let i = 0; i < this.cart.length; i++) {
       if (this.cart[i].id === id) {
-        this.cart[i].quantity = Math.min(this.cart[i].displayStock, quantity)
-        break
+        const stock = this.cart[i].displayStock
+        if (quantity > stock) {
+          const message = `Нельзя добавить больше товара, чем есть на складе! В наличии: ${stock} шт.`
+          this.notify({
+            title: 'Ограничение по складу',
+            message,
+            type: 'warning'
+          })
+          return false
+        }
+        this.cart[i].quantity = quantity
+        localStorage.setItem('cart', JSON.stringify(this.cart))
+        return true
       }
     }
-    localStorage.setItem('cart', JSON.stringify(this.cart))
+    return false
   },
 
   clearCart() {
