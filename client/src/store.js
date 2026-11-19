@@ -109,18 +109,7 @@ export const store = reactive({
       localStorage.setItem('isGuest', 'false')
       return true
     } catch (e) {
-      this.user = {
-        userId: Date.now(),
-        role: 'user',
-        name,
-        email,
-        phone,
-        password: pass
-      }
-      this.isGuest = false
-      localStorage.setItem('user', JSON.stringify(this.user))
-      localStorage.setItem('isGuest', 'false')
-      return false
+      throw e
     }
   },
 
@@ -335,24 +324,7 @@ export const store = reactive({
       }))
     }
 
-    let serverOrder = null
-    try {
-      serverOrder = await api.createOrder(payload)
-    } catch (e) {
-      console.error('API createOrder failed, fallback to local:', e)
-    }
-
-    const newOrder = serverOrder || {
-      receiptId: Date.now(),
-      code: '#TF-2026-000' + (this.orders.length + 1),
-      userId: this.user ? this.user.userId : 2,
-      totalPrice: this.getCartTotal(),
-      dateTime: new Date().toISOString(),
-      statusTitle: 'В обработке',
-      address,
-      user: this.user,
-      receiptItems: items
-    }
+    const newOrder = await api.createOrder(payload)
 
     if (!newOrder.receiptItems || newOrder.receiptItems.length === 0) {
       newOrder.receiptItems = items

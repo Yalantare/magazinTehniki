@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (Docker Compose)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up -d",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Vue (Vite)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/client/node_modules/vite/bin/vite.js",
+      "cwd": "${workspaceFolder}/client",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

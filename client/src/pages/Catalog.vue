@@ -316,15 +316,18 @@ const filteredProducts = computed(() => {
 }
 
 .sort-select {
-  background-color: var(--theme-combobox-bg);
-  border: 1px solid var(--theme-border);
+  border: 1px solid var(--theme-border-light);
   color: var(--theme-text-primary);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 12px 44px 12px 16px;
   font-size: 14px;
-  cursor: pointer;
-  outline: none;
   min-width: 220px;
+  max-width: 100%;
+  transition: border-color 0.15s ease;
+}
+
+.sort-select:hover {
+  border-color: var(--theme-text-muted);
 }
 
 .products-grid {

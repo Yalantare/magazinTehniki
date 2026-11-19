@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <title>Диаграмма развертывания магазина техники</title>
+  <desc>Клиент и администратор обмениваются данными с сервером FastAPI по HTTP и JSON. Сервер подключается к MySQL по TCP/IP.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#171717"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="900" fill="white"/>
+  <g fill="white" stroke="#171717" stroke-width="2.5">
+    <!-- Горизонтальный цилиндр: торцевая крышка справа. -->
+    <path d="M 638 115 H 960 A 45 105 0 0 1 960 325 H 638 A 45 105 0 0 1 638 115 Z"/>
+    <ellipse cx="960" cy="220" rx="45" ry="105"/>
+    <rect x="45" y="510" width="355" height="155"/>
+    <rect x="610" y="510" width="380" height="155"/>
+    <rect x="1200" y="510" width="355" height="155"/>
+  </g>
+  <g fill="none" stroke="#171717" stroke-width="2.5" marker-start="url(#arrow)" marker-end="url(#arrow)">
+    <path d="M 800 325 V 510"/>
+    <path d="M 400 587.5 H 610"/>
+    <path d="M 990 587.5 H 1200"/>
+  </g>
+  <g fill="#171717" font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <text x="785" y="212" font-size="24"><tspan x="785">Сервер БД (Docker)</tspan><tspan x="785" dy="34">MySQL 8.0 (:3307)</tspan></text>
+    <text x="222.5" y="577" font-size="24"><tspan x="222.5">ПК пользователя</tspan><tspan x="222.5" dy="34">Браузер (Vue 3)</tspan></text>
+    <text x="800" y="577" font-size="24"><tspan x="800">Сервер приложений (Docker)</tspan><tspan x="800" dy="34">FastAPI (:8090)</tspan></text>
+    <text x="1377.5" y="577" font-size="24"><tspan x="1377.5">ПК администратора</tspan><tspan x="1377.5" dy="34">Windows (TehnikiApp.exe)</tspan></text>
+    <text x="505" y="555" font-size="22">HTTP / JSON</text>
+    <text x="1095" y="555" font-size="22">HTTP / JSON</text>
+    <text x="890" y="421" font-size="22">TCP/IP (MySQL)</text>
+  </g>
+</svg>

@@ -105,6 +105,8 @@ def _migrate_schema(db_engine):
                         conn.execute(text("UPDATE receipts SET status_id = status WHERE status IS NOT NULL"))
             if "reviews" in existing_tables:
                 rev_cols = [c["name"] for c in inspector.get_columns("reviews")]
+                if "product_id" not in rev_cols and "articul" in rev_cols:
+                    conn.execute(text("ALTER TABLE reviews RENAME COLUMN articul TO product_id"))
                 if "user_id" not in rev_cols:
                     conn.execute(text("ALTER TABLE reviews ADD COLUMN user_id INT NULL"))
     except Exception as e:

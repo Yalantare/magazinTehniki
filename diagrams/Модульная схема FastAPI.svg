@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<title>Модульная схема серверной части FastAPI</title>
+<rect width="1600" height="1000" fill="white"/>
+<g stroke="black" stroke-width="1.6" fill="none">
+<path d="M800 145 V215"/>
+<path d="M420 265 H680"/>
+<path d="M920 265 H1180"/>
+<path d="M800 315 V385"/>
+<path d="M800 485 V540 M180 540 H1420"/>
+<path d="M180 540 V630"/>
+<path d="M490 540 V630"/>
+<path d="M800 540 V630"/>
+<path d="M1110 540 V630"/>
+<path d="M1420 540 V630"/>
+<path d="M335 540 V830"/>
+<path d="M645 540 V830"/>
+<path d="M955 540 V830"/>
+<path d="M1265 540 V830"/>
+</g><g stroke="black" stroke-width="1.6" fill="white">
+<rect x="650.0" y="45" width="300" height="100"/>
+<rect x="680.0" y="215" width="240" height="100"/>
+<rect x="180.0" y="215" width="240" height="100"/>
+<rect x="1180.0" y="215" width="240" height="100"/>
+<rect x="635.0" y="385" width="330" height="100"/>
+<rect x="60.0" y="630" width="240" height="100"/>
+<rect x="370.0" y="630" width="240" height="100"/>
+<rect x="680.0" y="630" width="240" height="100"/>
+<rect x="990.0" y="630" width="240" height="100"/>
+<rect x="1300.0" y="630" width="240" height="100"/>
+<rect x="215.0" y="830" width="240" height="100"/>
+<rect x="525.0" y="830" width="240" height="100"/>
+<rect x="835.0" y="830" width="240" height="100"/>
+<rect x="1145.0" y="830" width="240" height="100"/>
+</g><g fill="black" font-family="Arial, Helvetica, sans-serif" font-size="25" text-anchor="middle" dominant-baseline="middle">
+<text x="800.0" y="95.0">FastAPI</text>
+<text x="800.0" y="265.0">main.py</text>
+<text x="300.0" y="265.0">models.py</text>
+<text x="1300.0" y="265.0">database.py</text>
+<text x="800.0" y="435.0">controllers/__init__.py</text>
+<text x="180.0" y="680.0">products.py</text>
+<text x="490.0" y="680.0">categories.py</text>
+<text x="800.0" y="680.0">manufacturers.py</text>
+<text x="1110.0" y="680.0">users.py</text>
+<text x="1420.0" y="680.0">roles.py</text>
+<text x="335.0" y="880.0">reviews.py</text>
+<text x="645.0" y="880.0">cart.py</text>
+<text x="955.0" y="880.0">receipts.py</text>
+<text x="1265.0" y="880.0">statuses.py</text>
+</g></svg>
