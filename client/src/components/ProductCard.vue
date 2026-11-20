@@ -6,7 +6,7 @@
         :style="{ backgroundColor: availabilityColor }"
       />
       <span :style="{ color: availabilityColor }">
-        {{ isAvailable ? `В наличии: ${product.stock} шт.` : 'Нет в наличии' }}
+        {{ isAvailable ? `В наличии: ${availableStock} шт.` : 'Нет в наличии' }}
       </span>
       <span v-if="inCartCount > 0" class="in-cart-pill">
         в корзине: {{ inCartCount }}
@@ -38,7 +38,7 @@
     </div>
 
     <div class="bottom-section">
-      <span class="price">{{ formatPrice(product.price) }}</span>
+      <span class="price">{{ formatPrice(displayPrice) }}</span>
       <button
         class="add-btn"
         :class="{ 'btn-error': buttonStatus === 'error', 'btn-success': buttonStatus === 'success' }"
@@ -73,8 +73,16 @@ const ratingInfo = computed(() => {
   return store.getRating(props.product.articul)
 })
 
+const availableStock = computed(() => {
+  return store.getProductStock(props.product)
+})
+
+const displayPrice = computed(() => {
+  return store.getProductDisplayPrice(props.product)
+})
+
 const isAvailable = computed(() => {
-  return props.product.stock > 0
+  return availableStock.value > 0
 })
 
 const inCartCount = computed(() => {
@@ -86,7 +94,7 @@ const availabilityColor = computed(() => {
 })
 
 const formatPrice = (price) => {
-  return price.toLocaleString('ru-RU') + ' ₽'
+  return (Number(price) || 0).toLocaleString('ru-RU') + ' ₽'
 }
 
 const onImgError = (e) => {
@@ -101,12 +109,17 @@ const handleAddClick = (e) => {
   e.stopPropagation()
   if (!isAvailable.value) return
 
-  if (props.product.productVariations && props.product.productVariations.length > 0) {
+  if (store.hasSelectableVariations(props.product)) {
     router.push(`/product/${props.product.articul}`)
     return
   }
 
-  const res = store.addToCart(props.product)
+  const singleVar =
+    Array.isArray(props.product.productVariations) && props.product.productVariations.length === 1
+      ? props.product.productVariations[0]
+      : null
+
+  const res = store.addToCart(props.product, singleVar)
   if (statusTimeout) clearTimeout(statusTimeout)
 
   if (!res.success) {

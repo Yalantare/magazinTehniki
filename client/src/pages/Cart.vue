@@ -82,12 +82,17 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import CartItem from '../components/CartItem.vue'
 import { store } from '../store.js'
 
 const router = useRouter()
+
+onMounted(async () => {
+  await store.loadFromApi(true)
+})
 </script>
 
 <style scoped>

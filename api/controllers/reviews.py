@@ -96,14 +96,15 @@ def get_all_reviews(session: Session = Depends(database.get_session)):
     reviews = session.exec(select(models.Review).order_by(col(models.Review.id).desc())).all()
     res = []
     for r in reviews:
-        name = r.user_name
-        if not name and r.user_id:
+        name = None
+        if r.user_id:
             u = session.get(models.User, r.user_id)
             if u:
                 name = u.name
         res.append({
             "id": r.id,
-            "articul": r.articul,
+            "articul": r.product_id,
+            "productId": r.product_id,
             "userId": r.user_id,
             "userName": name or "Покупатель",
             "rating": r.rating,

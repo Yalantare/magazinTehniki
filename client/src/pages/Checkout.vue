@@ -300,7 +300,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../components/Header.vue'
 import { store } from '../store.js'
@@ -320,20 +320,31 @@ const router = useRouter()
 
 const name = ref(sanitizeName(store.user?.name || '', 2, 60))
 const phone = ref(formatPhone(store.user?.phone || ''))
-const city = ref('г. Уфа')
-const street = ref('ул. Кирова')
-const house = ref('д. 65/2')
-const floor = ref('2')
-const entrance = ref('1')
-const apartment = ref('кв. 1')
+const city = ref('')
+const street = ref('')
+const house = ref('')
+const floor = ref('')
+const entrance = ref('')
+const apartment = ref('')
 
 const paymentMethod = ref('card')
-const cardNumber = ref('4276 5500 1234 5678')
-const cardExpiry = ref('12/28')
-const cardCvv = ref('777')
+const cardNumber = ref('')
+const cardExpiry = ref('')
+const cardCvv = ref('')
 
 const error = ref('')
 const isSubmitting = ref(false)
+
+watch(() => store.user, (u) => {
+  if (u) {
+    if (!name.value) name.value = sanitizeName(u.name || '', 2, 60)
+    if (!phone.value) phone.value = formatPhone(u.phone || '')
+  }
+})
+
+onMounted(async () => {
+  await store.loadFromApi(true)
+})
 
 async function submitOrder() {
   if (isSubmitting.value) return
@@ -376,6 +387,7 @@ async function submitOrder() {
   } catch (err) {
     console.error('Ошибка создания заказа:', err)
     error.value = err.message || 'Ошибка оформления заказа'
+    await store.loadFromApi(true)
   } finally {
     isSubmitting.value = false
   }

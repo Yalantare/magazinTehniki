@@ -24,6 +24,7 @@ namespace TehnikiApp
         private Product? _editingProduct;
         private string _currentTab = "Products";
         private List<Categorye> _categories = new List<Categorye>();
+        private List<string> _manufacturers = new List<string>();
 
         private Brush ActiveTabBrush => (Brush)Application.Current.Resources["ThemeTextPrimary"];
         private Brush InactiveTabBrush => (Brush)Application.Current.Resources["ThemeTextSecondary"];
@@ -60,7 +61,7 @@ namespace TehnikiApp
         {
             try
             {
-                await Task.WhenAll(LoadProducts(), LoadReceipts(), LoadUsers(), LoadCategories(), LoadStatuses());
+                await Task.WhenAll(LoadProducts(), LoadReceipts(), LoadUsers(), LoadCategories(), LoadStatuses(), LoadManufacturers());
                 UpdateDashboardStats();
             }
             catch (Exception ex)
@@ -155,6 +156,22 @@ namespace TehnikiApp
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("Error loading statuses: " + ex.Message);
+            }
+        }
+
+        private async Task LoadManufacturers()
+        {
+            try
+            {
+                var brands = await _client.GetFromJsonAsync<List<string>>("api/brands");
+                if (brands != null)
+                {
+                    _manufacturers = brands.Where(b => !string.IsNullOrWhiteSpace(b)).Select(b => b.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(b => b).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error loading manufacturers: " + ex.Message);
             }
         }
 
@@ -1427,7 +1444,8 @@ namespace TehnikiApp
                 
                 string customerName = receipt.User?.Name ?? "Покупатель";
                 string address = string.IsNullOrEmpty(receipt.Adress) ? "Самовывоз" : receipt.Adress;
-                MessageBox.Show($"Квитанция: #TF-2024-{receipt.ReceiptId:D5}\nПокупатель: {customerName}\nСумма: {receipt.TotalPrice:N0}₽\nАдрес доставки: {address}", "Детали заказа", MessageBoxButton.OK, MessageBoxImage.Information);
+                string receiptCode = $"#TF-{receipt.DateTime.Year}-{receipt.ReceiptId:D5}";
+                MessageBox.Show($"Квитанция: {receiptCode}\nПокупатель: {customerName}\nСумма: {receipt.TotalPrice:N0}₽\nАдрес доставки: {address}", "Детали заказа", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -1504,7 +1522,7 @@ namespace TehnikiApp
             ModalOverlay.Visibility = Visibility.Visible;
         }
 
-        private void EditProductBtn_Click(object sender, RoutedEventArgs e)
+        private async void EditProductBtn_Click(object sender, RoutedEventArgs e)
         {
             Product? prod = null;
             if (sender is Button btn && btn.DataContext is Product p)
@@ -1551,18 +1569,23 @@ namespace TehnikiApp
             if (SpinnerPlusBtn != null) SpinnerPlusBtn.Visibility = Visibility.Visible;
             if (BrowseImageBtn != null) BrowseImageBtn.Visibility = Visibility.Visible;
 
-            LoadVariationsForEditingProduct();
-
             ModalOverlay.Visibility = Visibility.Visible;
+            await LoadVariationsForEditingProduct();
         }
 
-        private async void LoadVariationsForEditingProduct()
+        private async Task LoadVariationsForEditingProduct()
         {
             if (_editingProduct == null) return;
             try
             {
                 var vars = await _client.GetFromJsonAsync<List<ProductVariation>>($"api/products/{_editingProduct.Articul}/variations");
                 VariationsListBox.ItemsSource = vars;
+                if (vars != null && vars.Count > 0)
+                {
+                    int totalVarStock = vars.Sum(v => Math.Max(0, v.Stock));
+                    _editingProduct.Stock = totalVarStock;
+                    ModalStockInput.Text = totalVarStock.ToString();
+                }
             }
             catch (Exception ex)
             {
@@ -1610,7 +1633,9 @@ namespace TehnikiApp
                     VarNameInput.Text = "";
                     VarPriceInput.Text = "";
                     VarStockInput.Text = "0";
-                    LoadVariationsForEditingProduct();
+                    await LoadVariationsForEditingProduct();
+                    await LoadProducts();
+                    UpdateDashboardStats();
                 }
                 else
                 {
@@ -1635,7 +1660,9 @@ namespace TehnikiApp
                         var response = await _client.DeleteAsync($"api/products/variations/{variationId}");
                         if (response.IsSuccessStatusCode)
                         {
-                            LoadVariationsForEditingProduct();
+                            await LoadVariationsForEditingProduct();
+                            await LoadProducts();
+                            UpdateDashboardStats();
                         }
                         else
                         {
@@ -1796,8 +1823,8 @@ namespace TehnikiApp
             _isUpdatingManufacturer = true;
             try
             {
-                var existingManufacturers = _allProducts
-                    .Select(p => p.Manufacturer?.Trim())
+                var existingManufacturers = _manufacturers
+                    .Concat(_allProducts.Select(p => p.Manufacturer?.Trim() ?? ""))
                     .Where(m => !string.IsNullOrEmpty(m))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .OrderBy(m => m)
@@ -1989,7 +2016,7 @@ namespace TehnikiApp
                     {
                         MessageBox.Show("Продукт успешно добавлен!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                         ModalOverlay.Visibility = Visibility.Collapsed;
-                        await LoadProducts();
+                        await Task.WhenAll(LoadProducts(), LoadManufacturers());
                         UpdateDashboardStats();
                     }
                     else
@@ -2021,7 +2048,7 @@ namespace TehnikiApp
                     {
                         MessageBox.Show("Изменения успешно сохранены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                         ModalOverlay.Visibility = Visibility.Collapsed;
-                        await LoadProducts();
+                        await Task.WhenAll(LoadProducts(), LoadManufacturers());
                         UpdateDashboardStats();
                     }
                     else

@@ -13,12 +13,12 @@
       <span class="manufacturer">{{ item.product.manufacturer }}</span>
       <h3 class="title">{{ item.product.title }}</h3>
 
-      <span v-if="item.productVariation" class="variation">
+      <span v-if="showVariationBadge" class="variation">
         Вариация: {{ item.productVariation.name }}
       </span>
 
       <span class="stock-info">
-        {{ item.product.categoryNavigation?.title || 'Категория' }}, {{ item.displayStock }} в наличии
+        {{ item.product.categoryNavigation?.title || 'Категория' }}, {{ liveStock }} в наличии
       </span>
 
       <div class="qty-control">
@@ -30,7 +30,7 @@
         <div class="qty-divider" />
         <button
           class="qty-btn"
-          :disabled="item.quantity >= item.displayStock"
+          :disabled="item.quantity >= liveStock"
           @click="handleIncrease"
           title="Увеличить"
         >
@@ -55,6 +55,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Trash2 } from 'lucide-vue-next'
 import { store } from '../store.js'
 
@@ -65,8 +66,17 @@ const props = defineProps({
   }
 })
 
+const liveStock = computed(() => {
+  return store.getLiveCartItemStock(props.item)
+})
+
+const showVariationBadge = computed(() => {
+  const name = String(props.item.productVariation?.name || '').trim()
+  return name.length > 0 && name.toLowerCase() !== 'базовая'
+})
+
 const formatPrice = (price) => {
-  return price.toLocaleString('ru-RU') + ' ₽'
+  return (Number(price) || 0).toLocaleString('ru-RU') + ' ₽'
 }
 
 const onImgError = (e) => {
@@ -78,10 +88,10 @@ const handleDecrease = () => {
 }
 
 const handleIncrease = () => {
-  if (props.item.quantity >= props.item.displayStock) {
+  if (props.item.quantity >= liveStock.value) {
     store.notify({
       title: 'Ограничение по складу',
-      message: `Нельзя добавить больше товара, чем есть на складе! В наличии всего: ${props.item.displayStock} шт.`,
+      message: `Нельзя добавить больше товара, чем есть на складе! В наличии всего: ${liveStock.value} шт.`,
       type: 'warning'
     })
     return

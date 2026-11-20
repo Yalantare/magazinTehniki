@@ -13,6 +13,7 @@ except ImportError:
     from api import database, models
 
 from .receipts import format_receipt
+from .products import sync_product_stock
 
 router = APIRouter(tags=["Cart"])
 
@@ -57,15 +58,17 @@ def add_to_cart(data: models.AddToCartRequest, session: Session = Depends(databa
         raise HTTPException(status_code=404, detail="Товар не найден")
 
     if not var and product and product.articul is not None:
-        var = session.exec(
+        all_vars = session.exec(
             select(models.ProductVariation).where(models.ProductVariation.product_id == product.articul)
-        ).first()
-        if not var:
+        ).all()
+        if all_vars:
+            var = next((v for v in all_vars if (v.stock or 0) > 0), all_vars[0])
+        else:
             var = models.ProductVariation(
                 product_id=product.articul,
                 name="Базовая",
                 price=product.price,
-                stock=product.stock
+                stock=max(0, int(product.stock or 0))
             )
             session.add(var)
             session.commit()
@@ -211,22 +214,39 @@ def checkout_cart(receipt_id: int, data: models.CheckoutRequest, session: Sessio
         raise HTTPException(status_code=400, detail="Корзина пуста")
 
     total = 0.0
+    affected_products = {}
+    for item in items:
+        if item.variation_id:
+            variation = session.get(models.ProductVariation, item.variation_id)
+            if variation:
+                available = max(0, int(variation.stock or 0))
+                if item.quantity > available:
+                    prod = session.get(models.Product, variation.product_id)
+                    title = prod.title if prod else f"ID {variation.product_id}"
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Недостаточно товара «{title}» на складе. Доступно: {available} шт."
+                    )
+
     for item in items:
         item_price = item.price_at_purchase
         if item.variation_id:
             variation = session.get(models.ProductVariation, item.variation_id)
             if variation:
                 item_price = variation.price
-                variation.stock = max(0, variation.stock - item.quantity)
+                variation.stock = max(0, int(variation.stock or 0) - item.quantity)
                 session.add(variation)
                 prod = session.get(models.Product, variation.product_id)
-                if prod:
-                    prod.stock = max(0, prod.stock - item.quantity)
-                    session.add(prod)
+                if prod and prod.articul is not None:
+                    affected_products[prod.articul] = prod
 
         item.price_at_purchase = item_price
         total += item_price * item.quantity
         session.add(item)
+
+    session.flush()
+    for prod in affected_products.values():
+        sync_product_stock(prod, session, commit=False)
 
     cart.total_price = total
     cart.order_status = 1

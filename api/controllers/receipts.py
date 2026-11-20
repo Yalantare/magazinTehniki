@@ -11,7 +11,7 @@ try:
 except ImportError:
     from api import database, models
 
-from .products import format_product
+from .products import format_product, sync_product_stock
 from .users import format_user_response
 
 router = APIRouter(tags=["Receipts"])
@@ -104,6 +104,57 @@ def get_all_orders(session: Session = Depends(database.get_session)):
 
 @router.post("/api/orders")
 def create_order(data: models.CreateOrderRequest, session: Session = Depends(database.get_session)):
+    if not data.items:
+        raise HTTPException(status_code=400, detail="Корзина пуста")
+
+    # 1. Предварительная проверка наличия всех позиций на складе (до создания чека)
+    resolved_items = []
+    requested_by_var = {}
+
+    for it in data.items:
+        if it.quantity <= 0:
+            raise HTTPException(status_code=400, detail="Количество товара должно быть больше нуля")
+
+        prod = None
+        variation = None
+        if it.variation_id:
+            variation = session.get(models.ProductVariation, it.variation_id)
+            if variation:
+                prod = session.get(models.Product, variation.product_id)
+        elif it.product_id:
+            prod = session.get(models.Product, it.product_id)
+            if prod and prod.articul is not None:
+                all_vars = session.exec(
+                    select(models.ProductVariation).where(models.ProductVariation.product_id == prod.articul)
+                ).all()
+                if all_vars:
+                    variation = next((v for v in all_vars if (v.stock or 0) > 0), all_vars[0])
+                else:
+                    variation = models.ProductVariation(
+                        product_id=prod.articul,
+                        name="Базовая",
+                        price=prod.price,
+                        stock=max(0, int(prod.stock or 0))
+                    )
+                    session.add(variation)
+                    session.flush()
+
+        if not prod or not variation or variation.id is None:
+            raise HTTPException(status_code=404, detail="Один из товаров в корзине не найден в базе данных")
+
+        available = max(0, int(variation.stock or 0))
+        already_requested = requested_by_var.get(variation.id, 0)
+        if already_requested + it.quantity > available:
+            session.rollback()
+            var_label = f" ({variation.name})" if variation.name and variation.name.lower() != "базовая" else ""
+            raise HTTPException(
+                status_code=400,
+                detail=f"Недостаточно товара «{prod.title}{var_label}» на складе. Доступно: {available} шт."
+            )
+
+        requested_by_var[variation.id] = already_requested + it.quantity
+        resolved_items.append((it, prod, variation))
+
     user = None
     if data.user_id:
         user = session.get(models.User, data.user_id)
@@ -124,13 +175,12 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
             role_id=1
         )
         session.add(user)
-        session.commit()
-        session.refresh(user)
+        session.flush()
 
     now_str = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     order = models.Receipt(
         code="",
-        user_id=user.user_id,
+        user_id=user.user_id or 0,
         total_price=0.0,
         date_time=now_str,
         status_id=1,
@@ -138,59 +188,33 @@ def create_order(data: models.CreateOrderRequest, session: Session = Depends(dat
         address=data.address or ""
     )
     session.add(order)
-    session.commit()
-    session.refresh(order)
+    session.flush()
 
     order.code = f"#TF-{datetime.now().year}-{order.receipt_id:05d}"
 
     total_price = 0.0
-    for it in data.items:
-        prod = None
-        variation = None
-        if it.variation_id:
-            variation = session.get(models.ProductVariation, it.variation_id)
-            if variation:
-                prod = session.get(models.Product, variation.product_id)
-        elif it.product_id:
-            prod = session.get(models.Product, it.product_id)
-            if prod:
-                variation = session.exec(
-                    select(models.ProductVariation).where(models.ProductVariation.product_id == prod.articul)
-                ).first()
-                if not variation and prod.articul is not None:
-                    variation = models.ProductVariation(
-                        product_id=prod.articul,
-                        name="Базовая",
-                        price=prod.price,
-                        stock=prod.stock
-                    )
-                    session.add(variation)
-                    session.commit()
-                    session.refresh(variation)
+    affected_products = {}
 
-        if not prod and not variation:
-            continue
-
-        item_price = (it.price if it.price and it.price > 0 else None)
-        if variation:
-            if not item_price:
-                item_price = variation.price
-            variation.stock = max(0, variation.stock - it.quantity)
-            session.add(variation)
-        if prod:
-            if not item_price:
-                item_price = prod.price
-            prod.stock = max(0, prod.stock - it.quantity)
-            session.add(prod)
+    for it, prod, variation in resolved_items:
+        item_price = variation.price if variation.price is not None else prod.price
+        variation.stock = max(0, int(variation.stock or 0) - it.quantity)
+        session.add(variation)
+        if prod.articul is not None:
+            affected_products[prod.articul] = prod
 
         receipt_item = models.ReceiptItem(
             receipt_id=order.receipt_id or 0,
-            variation_id=variation.id if variation else None,
+            variation_id=variation.id,
             quantity=it.quantity,
             price_at_purchase=item_price or 0.0
         )
         session.add(receipt_item)
         total_price += (item_price or 0.0) * it.quantity
+
+    session.flush()
+    # Синхронизируем общий остаток каждого затронутого товара с суммой его вариаций
+    for prod in affected_products.values():
+        sync_product_stock(prod, session, commit=False)
 
     order.total_price = total_price
     session.add(order)

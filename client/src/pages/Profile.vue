@@ -119,13 +119,13 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Пароль</label>
+                <label class="form-label">Новый пароль (необязательно)</label>
                 <input
                   v-model="editPassword"
-                  type="text"
+                  type="password"
                   maxlength="32"
+                  placeholder="Оставьте пустым, чтобы не менять"
                   class="form-input"
-                  required
                   @keydown="handleSpaceKeydown($event, editPassword, 0)"
                   @input="editPassword = sanitizePassword($event.target.value, 32)"
                 />
@@ -281,18 +281,18 @@ function startEdit() {
   editName.value = sanitizeName(store.user?.name || '', 2, 60)
   editPhone.value = formatPhone(store.user?.phone || '')
   editEmail.value = sanitizeEmail(store.user?.email || '', 64)
-  editPassword.value = sanitizePassword(store.user?.password || 'password123', 32)
+  editPassword.value = ''
   isEditing.value = true
 }
 
-function saveProfile() {
+async function saveProfile() {
   profileError.value = ''
   const name = editName.value.trim()
   const phone = editPhone.value.trim()
   const email = editEmail.value.trim()
   const pass = editPassword.value
 
-  if (!name || !phone || !email || !pass) {
+  if (!name || !phone || !email) {
     profileError.value = 'Заполните все обязательные поля'
     return
   }
@@ -304,18 +304,23 @@ function saveProfile() {
     profileError.value = 'Введите полный номер телефона (+7 (XXX) XXX-XX-XX)'
     return
   }
-  if (pass.length < 4 || pass.length > 32) {
+  if (pass && (pass.length < 4 || pass.length > 32)) {
     profileError.value = 'Пароль должен содержать от 4 до 32 символов'
     return
   }
 
-  store.updateUser({
-    name,
-    phone,
-    email,
-    password: pass
-  })
-  isEditing.value = false
+  try {
+    await store.updateUser({
+      name,
+      phone,
+      email,
+      password: pass || undefined
+    })
+    store.notify({ title: 'Профиль', message: 'Данные профиля сохранены в базе данных', type: 'success', duration: 2500 })
+    isEditing.value = false
+  } catch (err) {
+    profileError.value = err.message || 'Не удалось сохранить данные профиля'
+  }
 }
 
 function logout() {

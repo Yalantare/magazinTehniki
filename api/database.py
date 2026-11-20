@@ -347,6 +347,33 @@ def _migrate_receipt_items():
     except Exception:
         pass
 
+def _sync_all_product_stocks(session: Session, models_module):
+    """Приводит products.stock в соответствие с суммой остатков вариаций для всех товаров с вариациями."""
+    try:
+        products = session.exec(select(models_module.Product)).all()
+        changed = False
+        for prod in products:
+            if prod.articul is None:
+                continue
+            variations = session.exec(
+                select(models_module.ProductVariation).where(
+                    models_module.ProductVariation.product_id == prod.articul
+                )
+            ).all()
+            if variations:
+                total = sum(max(0, int(v.stock or 0)) for v in variations)
+                if prod.stock != total:
+                    prod.stock = total
+                    session.add(prod)
+                    changed = True
+        if changed:
+            session.commit()
+            print("[DB] Остатки товаров синхронизированы с вариациями.")
+    except Exception as e:
+        session.rollback()
+        print(f"[DB] Ошибка синхронизации остатков: {e}")
+
+
 def init_db(retries: int = 5, delay: float = 2.0):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
@@ -375,6 +402,7 @@ def init_db(retries: int = 5, delay: float = 2.0):
             
             with Session(engine) as session:
                 _seed_initial_data(session, models_module)
+                _sync_all_product_stocks(session, models_module)
 
             _sync_product_images()
             print("База данных готова")

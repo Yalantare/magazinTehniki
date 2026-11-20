@@ -2,7 +2,11 @@
   <div class="container">
     <Header />
 
-    <div v-if="!product" class="not-found">
+    <div v-if="isLoadingProduct && !product" class="not-found">
+      <h2>Загрузка товара...</h2>
+    </div>
+
+    <div v-else-if="!product" class="not-found">
       <h2>Товар не найден</h2>
       <button class="back-btn-primary" @click="router.push('/catalog')">
         Вернуться в каталог
@@ -61,7 +65,7 @@
           </p>
 
           <div
-            v-if="product.productVariations && product.productVariations.length > 0"
+            v-if="showVariationsPanel"
             class="variations-panel"
           >
             <h2 class="section-title">Варианты товара</h2>
@@ -69,11 +73,21 @@
               <div
                 v-for="variation in product.productVariations"
                 :key="variation.id"
-                :class="['variation-card', selectedVariation?.id === variation.id ? 'variation-card-active' : '']"
-                @click="selectedVariation = variation; quantity = 1; errorMsg = ''"
+                :class="[
+                  'variation-card',
+                  selectedVariation?.id === variation.id ? 'variation-card-active' : '',
+                  (Number(variation.stock) || 0) <= 0 ? 'variation-card-empty' : ''
+                ]"
+                @click="selectVariation(variation)"
               >
                 <div class="variation-name">{{ variation.name }}</div>
-                <div class="variation-price">{{ variation.price.toLocaleString('ru-RU') }} ₽</div>
+                <div class="variation-price">{{ (Number(variation.price) || 0).toLocaleString('ru-RU') }} ₽</div>
+                <div
+                  class="variation-stock"
+                  :style="{ color: (Number(variation.stock) || 0) > 0 ? '#10B981' : '#EF4444' }"
+                >
+                  {{ (Number(variation.stock) || 0) > 0 ? `В наличии: ${variation.stock} шт.` : 'Нет в наличии' }}
+                </div>
               </div>
             </div>
           </div>
@@ -259,47 +273,8 @@ import { handleSpaceKeydown, sanitizeName } from '../utils/validators.js'
 const route = useRoute()
 const router = useRouter()
 
-const product = computed(() => {
-  return store.products.find(p => String(p.articul) === String(route.params.id))
-})
-
-const selectedVariation = ref(
-  product.value?.productVariations ? product.value.productVariations[0] : null
-)
-
-watch(product, (newVal) => {
-  if (newVal?.productVariations?.length && !selectedVariation.value) {
-    selectedVariation.value = newVal.productVariations[0]
-  }
-  if (newVal?.articul) {
-    store.loadReviews(newVal.articul)
-  }
-}, { immediate: true })
-
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    const p = store.products.find(x => String(x.articul) === String(newId))
-    selectedVariation.value = p?.productVariations?.length ? p.productVariations[0] : null
-    quantity.value = 1
-    errorMsg.value = ''
-    successMsg.value = ''
-    if (p?.articul) {
-      store.loadReviews(p.articul)
-    }
-  }
-})
-
-watch(selectedVariation, () => {
-  quantity.value = 1
-  errorMsg.value = ''
-  successMsg.value = ''
-})
-
-onMounted(() => {
-  if (product.value?.articul) {
-    store.loadReviews(product.value.articul)
-  }
-})
+const isLoadingProduct = ref(false)
+const selectedVariationId = ref(null)
 
 const quantity = ref(1)
 const successMsg = ref('')
@@ -312,12 +287,91 @@ const authorName = ref('')
 const commentText = ref('')
 const reviewMsg = ref('')
 
+const product = computed(() => {
+  return store.products.find(p => String(p.articul) === String(route.params.id)) || null
+})
+
+const showVariationsPanel = computed(() => {
+  return store.hasSelectableVariations(product.value)
+})
+
+// Всегда берём актуальный реактивный объект вариации из product.value (никогда не устаревает)
+const selectedVariation = computed(() => {
+  const vars = Array.isArray(product.value?.productVariations) ? product.value.productVariations : []
+  if (vars.length === 0) return null
+  if (selectedVariationId.value != null) {
+    const found = vars.find(v => String(v.id) === String(selectedVariationId.value))
+    if (found) return found
+  }
+  return vars.find(v => (Number(v.stock) || 0) > 0) || vars[0]
+})
+
+function syncSelectedVariation(prod) {
+  const vars = Array.isArray(prod?.productVariations) ? prod.productVariations : []
+  if (vars.length === 0) {
+    selectedVariationId.value = null
+    return
+  }
+  if (selectedVariationId.value != null) {
+    const exists = vars.some(v => String(v.id) === String(selectedVariationId.value))
+    if (exists) return
+  }
+  const firstAvailable = vars.find(v => (Number(v.stock) || 0) > 0) || vars[0]
+  selectedVariationId.value = firstAvailable ? firstAvailable.id : null
+}
+
+function selectVariation(variation) {
+  selectedVariationId.value = variation ? variation.id : null
+  quantity.value = 1
+  errorMsg.value = ''
+  successMsg.value = ''
+}
+
+async function fetchProductData(id) {
+  if (!id) return
+  isLoadingProduct.value = true
+  try {
+    await Promise.all([
+      store.loadProduct(id),
+      store.loadReviews(id)
+    ])
+  } finally {
+    isLoadingProduct.value = false
+  }
+}
+
+watch(product, (newVal) => {
+  syncSelectedVariation(newVal)
+}, { immediate: true, deep: true })
+
+watch(() => route.params.id, async (newId) => {
+  selectedVariationId.value = null
+  quantity.value = 1
+  errorMsg.value = ''
+  successMsg.value = ''
+  if (newId) {
+    await fetchProductData(newId)
+    syncSelectedVariation(product.value)
+  }
+})
+
+onMounted(async () => {
+  await fetchProductData(route.params.id)
+  syncSelectedVariation(product.value)
+})
+
 const currentPrice = computed(() => {
-  return selectedVariation.value ? selectedVariation.value.price : (product.value?.price || 0)
+  if (selectedVariation.value && selectedVariation.value.price != null) {
+    return Number(selectedVariation.value.price) || 0
+  }
+  return Number(product.value?.price) || 0
 })
 
 const currentStock = computed(() => {
-  return selectedVariation.value ? selectedVariation.value.stock : (product.value?.stock || 0)
+  if (selectedVariation.value) {
+    return Math.max(0, Number(selectedVariation.value.stock) || 0)
+  }
+  return store.getProductStock(product.value)
 })
 
 const isAvailable = computed(() => {
@@ -326,11 +380,19 @@ const isAvailable = computed(() => {
 
 const inCartCount = computed(() => {
   if (!product.value) return 0
-  return store.getQuantityInCart(product.value.articul, selectedVariation.value?.id)
+  return store.getQuantityInCart(product.value.articul, selectedVariation.value?.id ?? null)
 })
 
 const remainingStock = computed(() => {
   return Math.max(0, currentStock.value - inCartCount.value)
+})
+
+watch(remainingStock, (rem) => {
+  if (rem > 0 && quantity.value > rem) {
+    quantity.value = rem
+  } else if (rem <= 0) {
+    quantity.value = 1
+  }
 })
 
 const ratingInfo = computed(() => {
@@ -628,6 +690,16 @@ async function sendReview() {
   font-size: 13px;
   color: var(--theme-text-secondary);
   margin-top: 2px;
+}
+
+.variation-stock {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.variation-card-empty {
+  opacity: 0.65;
 }
 
 .purchase-panel {

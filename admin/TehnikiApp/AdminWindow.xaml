@@ -45,10 +45,10 @@
                     </Button>
                    
                     <StackPanel Orientation="Horizontal" Cursor="Hand">
-                        <TextBlock Name="AdminNameTxt" Text="James" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                        <TextBlock Name="AdminNameTxt" Text="Администратор" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                         <Grid>
                             <Ellipse Width="36" Height="36" Fill="#3B82F6"/>
-                            <TextBlock Name="AdminInitialsTxt" Text="J" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Name="AdminInitialsTxt" Text="А" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                         
                         <Button Click="LogoutBtn_Click" ToolTip="Выйти из системы" Background="Transparent" BorderThickness="0" Cursor="Hand" VerticalAlignment="Center" Margin="15,0,0,0">
@@ -81,8 +81,8 @@
                                     <Path Data="M5,5 H19 V19 H5 Z" Fill="Transparent" Stroke="{DynamicResource ThemeInfoText}" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
-                            <TextBlock Name="CardTotalProductsTxt" Text="12" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
-                            <TextBlock Name="CardProductsAlertTxt" Text="2 нет в наличии" Foreground="#94A3B8" FontSize="12"/>
+                            <TextBlock Name="CardTotalProductsTxt" Text="0" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardProductsAlertTxt" Text="0 нет в наличии" Foreground="#94A3B8" FontSize="12"/>
                         </StackPanel>
                     </Border>
 
@@ -99,8 +99,8 @@
                                     <Path Data="M5,8 H19 M12,3 V21" Fill="Transparent" Stroke="{DynamicResource ThemePurpleText}" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
-                            <TextBlock Name="CardTotalOrdersTxt" Text="5" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
-                            <TextBlock Name="CardOrdersProgressTxt" Text="2 в процессе" Foreground="#94A3B8" FontSize="12"/>
+                            <TextBlock Name="CardTotalOrdersTxt" Text="0" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardOrdersProgressTxt" Text="0 в процессе" Foreground="#94A3B8" FontSize="12"/>
                         </StackPanel>
                     </Border>
 
@@ -117,7 +117,7 @@
                                     <Path Data="M3,17 L9,11 L13,15 L21,7" Fill="Transparent" Stroke="{DynamicResource ThemeSuccessText}" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
-                            <TextBlock Name="CardTotalSalesTxt" Text="760992₽" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardTotalSalesTxt" Text="0₽" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
                             <TextBlock Text="Общий доход" Foreground="#94A3B8" FontSize="12"/>
                         </StackPanel>
                     </Border>
@@ -135,7 +135,7 @@
                                     <Path Data="M6,21 C6,16 18,16 18,21 M12,12 C14,12 16,10 16,7 C16,4 14,2 12,2 C10,2 8,4 8,7 C8,10 10,12 12,12 Z" Fill="Transparent" Stroke="{DynamicResource ThemeWarningText}" StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </Grid>
-                            <TextBlock Name="CardTotalUsersTxt" Text="3" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <TextBlock Name="CardTotalUsersTxt" Text="0" Foreground="{DynamicResource ThemeTextPrimary}" FontSize="28" FontWeight="Bold" Margin="0,0,0,4"/>
                             <TextBlock Text="Пользователи" Foreground="#94A3B8" FontSize="12"/>
                         </StackPanel>
                     </Border>
@@ -399,9 +399,6 @@
                         <Border DockPanel.Dock="Right" HorizontalAlignment="Right" Background="{DynamicResource ThemeCardBg}" BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1" CornerRadius="12" Height="45">
                             <ComboBox Name="SalesStatusFilter" SelectionChanged="SalesStatusFilter_SelectionChanged" Background="Transparent" Foreground="{DynamicResource ThemeTextPrimary}" Width="180" BorderThickness="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="14">
                                 <ComboBoxItem Content="Все статусы" IsSelected="True"/>
-                                <ComboBoxItem Content="Обработка"/>
-                                <ComboBoxItem Content="Отправлен"/>
-                                <ComboBoxItem Content="Доставлен"/>
                             </ComboBox>
                         </Border>
                     </DockPanel>
@@ -623,7 +620,7 @@
                                         </Border>
 
                                         
-                                        <TextBlock Grid.Column="4" Text="Июнь 15, 2023" Name="UserJoinedTxt" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="4" Text="—" Name="UserJoinedTxt" Foreground="{DynamicResource ThemeTextSecondary}" FontSize="13" VerticalAlignment="Center"/>
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding Role}" Value="admin">
